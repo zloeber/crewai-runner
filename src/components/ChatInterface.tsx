@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Send } from "lucide-react";
+import { crewAIApi } from "@/services/crewai-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -16,9 +18,11 @@ interface Message {
 
 interface ChatInterfaceProps {
   isRunning: boolean;
+  workflowId?: string;
 }
 
-export function ChatInterface({ isRunning }: ChatInterfaceProps) {
+export function ChatInterface({ isRunning, workflowId }: ChatInterfaceProps) {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -44,7 +48,7 @@ export function ChatInterface({ isRunning }: ChatInterfaceProps) {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || !isRunning) return;
+    if (!input.trim() || !isRunning || !workflowId) return;
 
     // Add user message
     const userMessage: Message = {
@@ -58,16 +62,18 @@ export function ChatInterface({ isRunning }: ChatInterfaceProps) {
     setInput("");
     setIsLoading(true);
 
-    // Simulate API call to backend
+    // Send message to backend
     try {
-      // In a real app, this would call your CrewAI backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const response = await crewAIApi.sendMessage({
+        workflowId,
+        message: input,
+      });
+
       // Add assistant response
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `I've received your request: "${input}". I'm analyzing this with the research team and will provide findings shortly.`,
+        content: response.response,
         timestamp: new Date(),
       };
 
@@ -80,6 +86,12 @@ export function ChatInterface({ isRunning }: ChatInterfaceProps) {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      
+      toast({
+        title: "Error",
+        description: "Failed to send message to workflow",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -154,19 +166,20 @@ export function ChatInterface({ isRunning }: ChatInterfaceProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={!isRunning || isLoading}
+            disabled={!isRunning || isLoading || !workflowId}
             className="min-h-[60px] resize-none"
           />
           <Button 
             size="icon" 
             onClick={handleSend}
-            disabled={!isRunning || !input.trim() || isLoading}
+            disabled={!isRunning || !input.trim() || isLoading || !workflowId}
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
         <div className="text-xs text-gray-500 mt-2 text-center">
           {!isRunning && "Workflow is not running. Start the workflow to begin chatting."}
+          {isRunning && !workflowId && "Starting workflow..."}
         </div>
       </div>
     </div>

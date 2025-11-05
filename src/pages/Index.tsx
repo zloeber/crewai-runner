@@ -13,10 +13,122 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { MessageCircle, Settings, Play, Square, Upload } from "lucide-react";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ProviderConfig } from "@/components/ProviderConfig";
+import { crewAIApi } from "@/services/crewai-api";
+import { useToast } from "@/hooks/use-toast";
+import { StartWorkflowResponse, ValidateYamlResponse } from "@/types/crewai-api";
 
 export default function Index() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("chat");
   const [isRunning, setIsRunning] = useState(false);
+  const [workflowId, setWorkflowId] = useState<string | null>(null);
+  const [yamlContent, setYamlContent] = useState(`name: ResearchCrew
+agents:
+  - name: researcher
+    role: Senior Research Analyst
+    goal: Uncover cutting-edge developments in AI and data science
+    backstory: You work at a leading tech think tank...
+    
+  - name: writer
+    role: Tech Content Strategist
+    goal: Craft compelling content on tech advancements
+    backstory: You are a renowned Content Strategist...
+
+tasks:
+  - name: research_task
+    description: Investigate the latest AI trends...
+    expected_output: A comprehensive 3 paragraphs report...
+    agent: researcher
+
+  - name: writing_task
+    description: Write a compelling article...
+    expected_output: A 3 paragraph article...
+    agent: writer`);
+
+  const handleStartWorkflow = async () => {
+    if (isRunning) {
+      // Stop workflow
+      if (workflowId) {
+        try {
+          await crewAIApi.stopWorkflow({ workflowId });
+          setIsRunning(false);
+          setWorkflowId(null);
+          toast({
+            title: "Success",
+            description: "Workflow stopped successfully",
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to stop workflow",
+            variant: "destructive",
+          });
+        }
+      }
+      return;
+    }
+
+    // Start workflow
+    try {
+      // First validate YAML
+      const validationResponse: ValidateYamlResponse = await crewAIApi.validateYaml({ 
+        yamlContent 
+      });
+      
+      if (!validationResponse.valid) {
+        toast({
+          title: "Validation Error",
+          description: validationResponse.errors?.join(", ") || "Invalid YAML content",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Start workflow
+      const response: StartWorkflowResponse = await crewAIApi.startWorkflow({
+        workflow: validationResponse.workflow!,
+      });
+      
+      setWorkflowId(response.workflowId);
+      setIsRunning(true);
+      
+      toast({
+        title: "Success",
+        description: "Workflow started successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start workflow",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleValidateYaml = async () => {
+    try {
+      const response = await crewAIApi.validateYaml({ yamlContent });
+      
+      if (response.valid) {
+        toast({
+          title: "Validation Success",
+          description: "YAML is valid",
+        });
+      } else {
+        toast({
+          title: "Validation Error",
+          description: response.errors?.join(", ") || "Invalid YAML",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to validate YAML",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,7 +166,7 @@ export default function Index() {
                 <div className="flex gap-2">
                   <Button 
                     className="flex-1" 
-                    onClick={() => setIsRunning(!isRunning)}
+                    onClick={handleStartWorkflow}
                     variant={isRunning ? "destructive" : "default"}
                   >
                     {isRunning ? (
@@ -72,9 +184,13 @@ export default function Index() {
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={handleValidateYaml}
+                  >
                     <Upload className="mr-2 h-4 w-4" />
-                    Load YAML
+                    Validate YAML
                   </Button>
                 </div>
                 
@@ -115,7 +231,7 @@ export default function Index() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ChatInterface isRunning={isRunning} />
+                    <ChatInterface isRunning={isRunning} workflowId={workflowId || undefined} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -136,32 +252,17 @@ export default function Index() {
                           id="yaml-input"
                           placeholder="Enter your YAML workflow definition here..."
                           className="min-h-[400px] font-mono text-sm"
-                          defaultValue={`name: ResearchCrew
-agents:
-  - name: researcher
-    role: Senior Research Analyst
-    goal: Uncover cutting-edge developments in AI and data science
-    backstory: You work at a leading tech think tank...
-    
-  - name: writer
-    role: Tech Content Strategist
-    goal: Craft compelling content on tech advancements
-    backstory: You are a renowned Content Strategist...
-
-tasks:
-  - name: research_task
-    description: Investigate the latest AI trends...
-    expected_output: A comprehensive 3 paragraphs report...
-    agent: researcher
-
-  - name: writing_task
-    description: Write a compelling article...
-    expected_output: A 3 paragraph article...
-    agent: writer`}
+                          value={yamlContent}
+                          onChange={(e) => setYamlContent(e.target.value)}
                         />
                       </div>
-                      <div className="flex justify-end">
-                        <Button>Validate & Apply</Button>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={handleValidateYaml}>
+                          Validate
+                        </Button>
+                        <Button onClick={handleStartWorkflow}>
+                          Apply & Start
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

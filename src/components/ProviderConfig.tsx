@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,35 +9,139 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
+import { crewAIApi } from "@/services/crewai-api";
+import { ProviderConfig as ProviderConfigType, ModelConfig } from "@/types/crewai-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProviderConfigProps {}
 
 export function ProviderConfig({}: ProviderConfigProps) {
+  const { toast } = useToast();
   const [provider, setProvider] = useState("openai");
   const [apiKey, setApiKey] = useState("");
-  const [customEndpoints, setCustomEndpoints] = useState([
-    { id: 1, name: "Custom LLM Endpoint", url: "https://api.custom-llm.com/v1", type: "llm" },
-    { id: 2, name: "Custom Embedder", url: "https://api.custom-embed.com/v1", type: "embedder" }
-  ]);
-  const [newEndpoint, setNewEndpoint] = useState({ name: "", url: "", type: "llm" });
+  const [customProviders, setCustomProviders] = useState<ProviderConfigType[]>([]);
+  const [models, setModels] = useState<ModelConfig[]>([]);
+  const [newProvider, setNewProvider] = useState({
+    name: "",
+    type: "custom" as const,
+    baseUrl: "",
+  });
+  const [newModel, setNewModel] = useState({
+    name: "",
+    type: "llm" as const,
+    providerId: "",
+    endpoint: "",
+  });
 
-  const addEndpoint = () => {
-    if (newEndpoint.name && newEndpoint.url) {
-      setCustomEndpoints([
-        ...customEndpoints,
-        { 
-          id: Date.now(), 
-          name: newEndpoint.name, 
-          url: newEndpoint.url, 
-          type: newEndpoint.type 
-        }
-      ]);
-      setNewEndpoint({ name: "", url: "", type: "llm" });
+  useEffect(() => {
+    loadProviders();
+    loadModels();
+  }, []);
+
+  const loadProviders = async () => {
+    try {
+      const response = await crewAIApi.listProviders();
+      setCustomProviders(response.providers);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load providers",
+        variant: "destructive",
+      });
     }
   };
 
-  const removeEndpoint = (id: number) => {
-    setCustomEndpoints(customEndpoints.filter(endpoint => endpoint.id !== id));
+  const loadModels = async () => {
+    try {
+      const response = await crewAIApi.listModels();
+      setModels(response.models);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load models",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addProvider = async () => {
+    if (!newProvider.name || !newProvider.baseUrl) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await crewAIApi.addProvider({
+        provider: {
+          name: newProvider.name,
+          type: newProvider.type,
+          baseUrl: newProvider.baseUrl,
+          models: [],
+        },
+      });
+
+      setCustomProviders([...customProviders, response.provider]);
+      setNewProvider({ name: "", type: "custom", baseUrl: "" });
+      
+      toast({
+        title: "Success",
+        description: "Provider added successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add provider",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addModel = async () => {
+    if (!newModel.name || !newModel.providerId || !newModel.endpoint) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await crewAIApi.addModel({
+        model: {
+          name: newModel.name,
+          type: newModel.type,
+          providerId: newModel.providerId,
+          endpoint: newModel.endpoint,
+        },
+      });
+
+      setModels([...models, response.model]);
+      setNewModel({ name: "", type: "llm", providerId: "", endpoint: "" });
+      
+      toast({
+        title: "Success",
+        description: "Model added successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add model",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeProvider = (id: string) => {
+    setCustomProviders(customProviders.filter(provider => provider.id !== id));
+  };
+
+  const removeModel = (id: string) => {
+    setModels(models.filter(model => model.id !== id));
   };
 
   return (
@@ -83,25 +187,25 @@ export function ProviderConfig({}: ProviderConfigProps) {
 
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h3 className="font-medium">Custom Endpoints</h3>
-          <Badge variant="secondary">{customEndpoints.length} configured</Badge>
+          <h3 className="font-medium">Custom Providers</h3>
+          <Badge variant="secondary">{customProviders.length} configured</Badge>
         </div>
         
         <div className="space-y-3 mb-4">
-          {customEndpoints.map((endpoint) => (
-            <div key={endpoint.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+          {customProviders.map((provider) => (
+            <div key={provider.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
               <div>
-                <div className="font-medium">{endpoint.name}</div>
-                <div className="text-sm text-gray-500 truncate max-w-[200px]">{endpoint.url}</div>
+                <div className="font-medium">{provider.name}</div>
+                <div className="text-sm text-gray-500 truncate max-w-[200px]">{provider.baseUrl}</div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
-                  {endpoint.type}
+                  {provider.type}
                 </Badge>
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => removeEndpoint(endpoint.id)}
+                  onClick={() => removeProvider(provider.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -112,36 +216,119 @@ export function ProviderConfig({}: ProviderConfigProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Add New Endpoint</CardTitle>
+            <CardTitle className="text-sm">Add New Provider</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="endpoint-name">Name</Label>
+              <Label htmlFor="provider-name">Name</Label>
               <Input 
-                id="endpoint-name"
-                placeholder="My Custom LLM"
-                value={newEndpoint.name}
-                onChange={(e) => setNewEndpoint({...newEndpoint, name: e.target.value})}
+                id="provider-name"
+                placeholder="My Custom Provider"
+                value={newProvider.name}
+                onChange={(e) => setNewProvider({...newProvider, name: e.target.value})}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="endpoint-url">URL</Label>
+              <Label htmlFor="provider-url">Base URL</Label>
               <Input 
-                id="endpoint-url"
+                id="provider-url"
                 placeholder="https://api.example.com/v1"
-                value={newEndpoint.url}
-                onChange={(e) => setNewEndpoint({...newEndpoint, url: e.target.value})}
+                value={newProvider.baseUrl}
+                onChange={(e) => setNewProvider({...newProvider, baseUrl: e.target.value})}
+              />
+            </div>
+            
+            <Button className="w-full" onClick={addProvider}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Provider
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Separator />
+
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-medium">Models</h3>
+          <Badge variant="secondary">{models.length} configured</Badge>
+        </div>
+        
+        <div className="space-y-3 mb-4">
+          {models.map((model) => (
+            <div key={model.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+              <div>
+                <div className="font-medium">{model.name}</div>
+                <div className="text-sm text-gray-500">{model.endpoint}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {model.type}
+                </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => removeModel(model.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Add New Model</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="model-name">Name</Label>
+              <Input 
+                id="model-name"
+                placeholder="gpt-4-turbo"
+                value={newModel.name}
+                onChange={(e) => setNewModel({...newModel, name: e.target.value})}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="endpoint-type">Type</Label>
+              <Label htmlFor="model-provider">Provider</Label>
               <Select 
-                value={newEndpoint.type} 
-                onValueChange={(value) => setNewEndpoint({...newEndpoint, type: value})}
+                value={newModel.providerId} 
+                onValueChange={(value) => setNewModel({...newModel, providerId: value})}
               >
-                <SelectTrigger id="endpoint-type">
+                <SelectTrigger id="model-provider">
+                  <SelectValue placeholder="Select a provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customProviders.map(provider => (
+                    <SelectItem key={provider.id} value={provider.id}>
+                      {provider.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="model-endpoint">Endpoint</Label>
+              <Input 
+                id="model-endpoint"
+                placeholder="/chat/completions"
+                value={newModel.endpoint}
+                onChange={(e) => setNewModel({...newModel, endpoint: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="model-type">Type</Label>
+              <Select 
+                value={newModel.type} 
+                onValueChange={(value) => setNewModel({...newModel, type: value as "llm" | "embedder"})}
+              >
+                <SelectTrigger id="model-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,9 +338,9 @@ export function ProviderConfig({}: ProviderConfigProps) {
               </Select>
             </div>
             
-            <Button className="w-full" onClick={addEndpoint}>
+            <Button className="w-full" onClick={addModel}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Endpoint
+              Add Model
             </Button>
           </CardContent>
         </Card>
