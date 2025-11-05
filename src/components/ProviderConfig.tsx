@@ -43,11 +43,9 @@ export function ProviderConfig({}: ProviderConfigProps) {
       const response = await crewAIApi.listProviders();
       setCustomProviders(response.providers);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load providers",
-        variant: "destructive",
-      });
+      console.error("Failed to load providers:", error);
+      // Initialize with empty array if API fails
+      setCustomProviders([]);
     }
   };
 
@@ -56,19 +54,27 @@ export function ProviderConfig({}: ProviderConfigProps) {
       const response = await crewAIApi.listModels();
       setModels(response.models);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load models",
-        variant: "destructive",
-      });
+      console.error("Failed to load models:", error);
+      // Initialize with empty array if API fails
+      setModels([]);
     }
   };
 
   const addProvider = async () => {
-    if (!newProvider.name || !newProvider.baseUrl) {
+    if (!newProvider.name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please enter a provider name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Only require baseUrl for custom providers
+    if (newProvider.type === "custom" && !newProvider.baseUrl) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a base URL for custom providers",
         variant: "destructive",
       });
       return;
@@ -79,7 +85,7 @@ export function ProviderConfig({}: ProviderConfigProps) {
         provider: {
           name: newProvider.name,
           type: newProvider.type,
-          baseUrl: newProvider.baseUrl,
+          baseUrl: newProvider.baseUrl || undefined,
           models: [],
         },
       });
@@ -91,20 +97,39 @@ export function ProviderConfig({}: ProviderConfigProps) {
         title: "Success",
         description: "Provider added successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Failed to add provider:", error);
       toast({
         title: "Error",
-        description: "Failed to add provider",
+        description: error.message || "Failed to add provider",
         variant: "destructive",
       });
     }
   };
 
   const addModel = async () => {
-    if (!newModel.name || !newModel.providerId || !newModel.endpoint) {
+    if (!newModel.name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please enter a model name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newModel.providerId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a provider",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newModel.endpoint) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter an endpoint",
         variant: "destructive",
       });
       return;
@@ -127,10 +152,11 @@ export function ProviderConfig({}: ProviderConfigProps) {
         title: "Success",
         description: "Model added successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Failed to add model:", error);
       toast({
         title: "Error",
-        description: "Failed to add model",
+        description: error.message || "Failed to add model",
         variant: "destructive",
       });
     }
@@ -196,7 +222,7 @@ export function ProviderConfig({}: ProviderConfigProps) {
             <div key={provider.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
               <div>
                 <div className="font-medium">{provider.name}</div>
-                <div className="text-sm text-gray-500 truncate max-w-[200px]">{provider.baseUrl}</div>
+                <div className="text-sm text-gray-500 truncate max-w-[200px]">{provider.baseUrl || "No URL"}</div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
@@ -220,7 +246,7 @@ export function ProviderConfig({}: ProviderConfigProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="provider-name">Name</Label>
+              <Label htmlFor="provider-name">Name *</Label>
               <Input 
                 id="provider-name"
                 placeholder="My Custom Provider"
@@ -230,7 +256,26 @@ export function ProviderConfig({}: ProviderConfigProps) {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="provider-url">Base URL</Label>
+              <Label htmlFor="provider-type">Type</Label>
+              <Select 
+                value={newProvider.type} 
+                onValueChange={(value) => setNewProvider({...newProvider, type: value as "openai" | "anthropic" | "ollama" | "azure" | "custom"})}
+              >
+                <SelectTrigger id="provider-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                  <SelectItem value="ollama">Ollama</SelectItem>
+                  <SelectItem value="azure">Azure OpenAI</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="provider-url">Base URL {newProvider.type === "custom" && "*"}</Label>
               <Input 
                 id="provider-url"
                 placeholder="https://api.example.com/v1"
@@ -284,7 +329,7 @@ export function ProviderConfig({}: ProviderConfigProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="model-name">Name</Label>
+              <Label htmlFor="model-name">Name *</Label>
               <Input 
                 id="model-name"
                 placeholder="gpt-4-turbo"
@@ -294,7 +339,7 @@ export function ProviderConfig({}: ProviderConfigProps) {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="model-provider">Provider</Label>
+              <Label htmlFor="model-provider">Provider *</Label>
               <Select 
                 value={newModel.providerId} 
                 onValueChange={(value) => setNewModel({...newModel, providerId: value})}
@@ -313,7 +358,7 @@ export function ProviderConfig({}: ProviderConfigProps) {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="model-endpoint">Endpoint</Label>
+              <Label htmlFor="model-endpoint">Endpoint *</Label>
               <Input 
                 id="model-endpoint"
                 placeholder="/chat/completions"
