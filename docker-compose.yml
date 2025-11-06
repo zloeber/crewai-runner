@@ -49,6 +49,3 @@ services:
 networks:
   crewai-network:
     driver: bridge
-
-volumes:
-  backend-cache:

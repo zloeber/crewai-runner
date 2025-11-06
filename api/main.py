@@ -44,7 +44,7 @@ async def http_exception_handler(request, exc):
         content=ErrorResponse(
             error=exc.detail,
             message=str(exc.detail),
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -56,7 +56,7 @@ async def general_exception_handler(request, exc):
         content=ErrorResponse(
             error="Internal Server Error",
             message=str(exc),
-        ).dict(),
+        ).model_dump(),
     )
 
 
