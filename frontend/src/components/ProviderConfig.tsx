@@ -219,10 +219,10 @@ export function ProviderConfig({}: ProviderConfigProps) {
         
         <div className="space-y-3 mb-4">
           {customProviders.map((provider) => (
-            <div key={provider.id} className="flex items-center justify-between p-3 bg-muted rounded-md">
+            <div key={provider.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
               <div>
                 <div className="font-medium">{provider.name}</div>
-                <div className="text-sm text-muted-foreground truncate max-w-[200px]">{provider.baseUrl || "No URL"}</div>
+                <div className="text-sm text-gray-500 truncate max-w-[200px]">{provider.baseUrl || "No URL"}</div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
@@ -302,10 +302,10 @@ export function ProviderConfig({}: ProviderConfigProps) {
         
         <div className="space-y-3 mb-4">
           {models.map((model) => (
-            <div key={model.id} className="flex items-center justify-between p-3 bg-muted rounded-md">
+            <div key={model.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
               <div>
                 <div className="font-medium">{model.name}</div>
-                <div className="text-sm text-muted-foreground">{model.endpoint}</div>
+                <div className="text-sm text-gray-500">{model.endpoint}</div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
