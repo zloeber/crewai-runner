@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: crewai-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY:-dev-api-key-change-in-production}
+      - API_BASE_URL=/api
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_RELOAD=false
+    volumes:
+      - ./api:/app
+      - /app/__pycache__
+    restart: unless-stopped
+    networks:
+      - crewai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crewai-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - crewai-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  crewai-network:
+    driver: bridge
