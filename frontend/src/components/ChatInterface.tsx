@@ -123,15 +123,15 @@ export function ChatInterface({ isRunning, workflowId }: ChatInterfaceProps) {
                   <div 
                     className={`inline-block p-3 rounded-lg ${
                       message.role === 'user' 
-                        ? 'bg-blue-500 text-white' 
+                        ? 'bg-primary text-primary-foreground' 
                         : message.role === 'system'
-                        ? 'bg-gray-200 text-gray-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-muted text-muted-foreground'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {message.content}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -145,11 +145,11 @@ export function ChatInterface({ isRunning, workflowId }: ChatInterfaceProps) {
                   <AvatarFallback>A</AvatarFallback>
                 </Avatar>
                 <div className="mx-2">
-                  <div className="inline-block p-3 rounded-lg bg-gray-100 text-gray-800">
+                  <div className="inline-block p-3 rounded-lg bg-muted text-muted-foreground">
                     <div className="flex space-x-1">
-                      <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                     </div>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export function ChatInterface({ isRunning, workflowId }: ChatInterfaceProps) {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <div className="text-xs text-gray-500 mt-2 text-center">
+        <div className="text-xs text-muted-foreground mt-2 text-center">
           {!isRunning && "Workflow is not running. Start the workflow to begin chatting."}
           {isRunning && !workflowId && "Starting workflow..."}
         </div>

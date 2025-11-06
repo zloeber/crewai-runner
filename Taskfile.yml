@@ -207,9 +207,12 @@ tasks:
       - |
         repomix --style=markdown --output=docs/repomix.md --compress
 
-  build:image:
-    desc: Build Docker images
+  build:api:image:
+    desc: Build API Docker image
+    dir: ./api
     cmds:
+      - |
+        pwd
       - task: docker:build
         vars:
           DOCKER_BUILD_ARGS: "--build-arg DEPLOY_VERSION={{.VERSION}}-$(git rev-parse --short HEAD)"
@@ -244,3 +247,4 @@ tasks:
           --format table \
           --analyzers yara \
           -o security_scan_results.md
+

@@ -3,7 +3,7 @@
 ## Project Overview
 
 `./frontend` - A NodeJS/React/Vite frontend
-`./backend` - FastMCP/FastAPI/Click-based Python wrapper to CrewAI.
+`./api` - FastMCP/FastAPI/Click-based Python wrapper to CrewAI.
 `./API_SCHEMA.md` - API endpoints and configuration requirements
 
 ## Rules
