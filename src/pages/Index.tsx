@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { MessageCircle, Settings, Play, Square, Upload } from "lucide-react";
+import { MessageCircle, Settings, Play, Square, Upload, FileText } from "lucide-react";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ProviderConfig } from "@/components/ProviderConfig";
 import { crewAIApi } from "@/services/crewai-api";
 import { useToast } from "@/hooks/use-toast";
-import { StartWorkflowResponse, ValidateYamlResponse } from "@/types/crewai-api";
+import { StartWorkflowResponse, ValidateYamlResponse, WorkflowConfig } from "@/types/crewai-api";
 
 export default function Index() {
   const { toast } = useToast();
@@ -44,6 +44,7 @@ tasks:
     description: Write a compelling article...
     expected_output: A 3 paragraph article...
     agent: writer`);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleStartWorkflow = async () => {
     if (isRunning) {
@@ -130,6 +131,30 @@ tasks:
     }
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (content) {
+        setYamlContent(content);
+        toast({
+          title: "Success",
+          description: "YAML file loaded successfully",
+        });
+        // Switch to YAML tab to show the loaded content
+        setActiveTab("yaml");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8">
@@ -192,6 +217,24 @@ tasks:
                     <Upload className="mr-2 h-4 w-4" />
                     Validate YAML
                   </Button>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={triggerFileInput}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Load YAML File
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".yaml,.yml"
+                    className="hidden"
+                  />
                 </div>
                 
                 <Separator />
