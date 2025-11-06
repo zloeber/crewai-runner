@@ -1,0 +1,50 @@
+version: '3.8'
+
+# Development docker-compose configuration
+# Includes hot reloading for both frontend and backend
+
+services:
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: crewai-backend-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY:-dev-api-key-change-in-production}
+      - API_BASE_URL=/api
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_RELOAD=true  # Enable hot reloading
+    volumes:
+      - ./api:/app
+      - /app/__pycache__
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+    networks:
+      - crewai-network
+
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: crewai-frontend-dev
+    ports:
+      - "5173:5173"  # Vite dev server port
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: pnpm dev --host 0.0.0.0
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - crewai-network
+
+networks:
+  crewai-network:
+    driver: bridge
