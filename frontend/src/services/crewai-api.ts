@@ -20,17 +20,77 @@ import {
   WorkflowConfig
 } from "@/types/crewai-api";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-
 class CrewAIApi {
+  private authToken: string | null = null;
+
+  // Get the current API base URL (supports dynamic configuration)
+  getApiBaseUrl(): string {
+    // First check localStorage for user configuration
+    const stored = localStorage.getItem('crewai_api_endpoint');
+    if (stored) {
+      return stored;
+    }
+    
+    // Fall back to environment variable
+    return import.meta.env.VITE_CREWAI_RUNNER_API_HOST || "http://localhost:8000";
+  }
+
+  // Set the API base URL
+  setApiBaseUrl(url: string) {
+    localStorage.setItem('crewai_api_endpoint', url);
+  }
+
+  // Set the authorization token
+  setAuthToken(token: string | null) {
+    this.authToken = token;
+    // Store in localStorage for persistence
+    if (token) {
+      localStorage.setItem('crewai_auth_token', token);
+    } else {
+      localStorage.removeItem('crewai_auth_token');
+    }
+  }
+
+  // Get the current auth token
+  getAuthToken(): string | null {
+    // First check in-memory token
+    if (this.authToken) {
+      return this.authToken;
+    }
+    
+    // Fall back to localStorage
+    const stored = localStorage.getItem('crewai_auth_token');
+    if (stored) {
+      this.authToken = stored;
+      return stored;
+    }
+    
+    // Check environment variable as fallback
+    const envToken = import.meta.env.VITE_CREWAI_API_TOKEN;
+    if (envToken) {
+      return envToken;
+    }
+    
+    return null;
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    // For API endpoints, prepend /api if not already present
+    // For health check, use the endpoint as-is
+    const apiEndpoint = endpoint.startsWith('/health') ? endpoint : `/api${endpoint}`;
+    const url = `${this.getApiBaseUrl()}${apiEndpoint}`;
     
     // Add default headers
-    const headers = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
+
+    // Add authorization header if token is available
+    const token = this.getAuthToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
 
     try {
       const response = await fetch(url, {
@@ -63,6 +123,11 @@ class CrewAIApi {
       // Re-throw other errors
       throw error;
     }
+  }
+
+  // Health check endpoint
+  async healthCheck(): Promise<{ status: string }> {
+    return this.request("/health");
   }
 
   // Workflow endpoints
@@ -141,6 +206,30 @@ class CrewAIApi {
     } catch (error) {
       console.error("Failed to validate YAML:", error);
       return null;
+    }
+  }
+
+  // Authentication utility methods
+  isAuthenticated(): boolean {
+    return this.getAuthToken() !== null;
+  }
+
+  clearAuth(): void {
+    this.setAuthToken(null);
+  }
+
+  // Test authentication by making a simple request
+  async testAuth(): Promise<boolean> {
+    try {
+      await this.listProviders();
+      return true;
+    } catch (error) {
+      // If we get a 401/403, auth failed
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('403'))) {
+        return false;
+      }
+      // For other errors, we assume auth is OK but there's another issue
+      return true;
     }
   }
 }

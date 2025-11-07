@@ -3,7 +3,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: crewai-backend
+    container_name: backend
     ports:
       - "8000:8000"
     env_file:
@@ -13,7 +13,8 @@ services:
       - API_BASE_URL=/api
       - API_HOST=0.0.0.0
       - API_PORT=8000
-      - API_RELOAD=false
+      - API_RELOAD=true
+      - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME:-localhost}
       - DEPLOY_VERSION=0.1.0
     volumes:
       - ./api:/app
@@ -31,7 +32,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: crewai-frontend
+      args:
+        - VITE_CREWAI_RUNNER_API_HOST=${VITE_CREWAI_RUNNER_API_HOST:-http://localhost:8000}
+        - VITE_CREWAI_API_TOKEN=${VITE_CREWAI_API_TOKEN:-}
+    env_file:
+      - ./.env
+    container_name: frontend
     ports:
       - "80:80"
     depends_on:
@@ -45,7 +51,120 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+  valkey:
+    container_name: valkey
+    image: docker.io/valkey/valkey:8-alpine
+    command: valkey-server --save 30 1 --loglevel warning
+    restart: unless-stopped
+    networks:
+      - crewai-network
+    volumes:
+      - valkey-data2:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  searxng:
+    container_name: searxng
+    image: docker.io/searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - crewai-network
+    volumes:
+      - searxng-data:/var/cache/searxng:rw
+    configs:
+      - source: searxng_limiter_config
+        target: /etc/searxng/limiter.toml
+      - source: searxng_config
+        target: /etc/searxng/settings.yml
+    environment:
+      - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    depends_on:
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    container_name: qdrant
+    networks:
+      - crewai-network
+    ports:
+      - 6333:6333
+      - 6334:6334
+    expose:
+      - 6333
+      - 6334
+      - 6335
+    configs:
+      - source: qdrant_config
+        target: /qdrant/config/production.yaml
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+      - qdrant_data:/mem0/storage
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/6333 && echo -e 'GET /readyz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q 'HTTP/1.1 200' <&3"]
+
+volumes:
+  valkey-data2:
+  searxng-data:
+  qdrant_data:
 
 networks:
   crewai-network:
     driver: bridge
+
+configs:
+  searxng_limiter_config:
+    content: |
+      # This configuration file updates the default configuration file
+      # See https://github.com/searxng/searxng/blob/master/searx/limiter.toml
+
+      [botdetection.ip_limit]
+      # activate advanced bot protection
+      # enable this when running the instance for a public usage on the internet
+      link_token = false
+  searxng_config:
+    content: |
+      # see https://docs.searxng.org/admin/settings/settings.html#settings-use-default-settings
+      use_default_settings: true
+        # engines:
+        #   keep_only:
+        #     - google
+        #     - duckduckgo
+      server:
+        # base_url is defined in the SEARXNG_BASE_URL environment variable, see .env and docker-compose.yml
+        secret_key: "some_secret_key123"
+        limiter: false  # enable this when running the instance for a public usage on the internet
+        image_proxy: true
+      search:
+        formats:
+          - html
+          - csv
+          - rss
+          - json
+      valkey:
+        url: valkey://valkey:6379/0
+  qdrant_config:
+    content: |
+      log_level: INFO

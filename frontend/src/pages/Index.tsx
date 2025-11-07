@@ -14,6 +14,8 @@ import { MessageCircle, Settings, Play, Square, Upload, FileText } from "lucide-
 import { ChatInterface } from "@/components/ChatInterface";
 import { ProviderConfig } from "@/components/ProviderConfig";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ConnectionMonitor } from "@/components/ConnectionMonitor";
+import ConfigurationMenuFixed from '@/components/ConfigurationMenuFixed';
 import { crewAIApi } from "@/services/crewai-api";
 import { useToast } from "@/hooks/use-toast";
 import { StartWorkflowResponse, ValidateYamlResponse, WorkflowConfig } from "@/types/crewai-api";
@@ -175,7 +177,7 @@ tasks:
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Configuration Panel */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -191,7 +193,7 @@ tasks:
               </CardContent>
             </Card>
 
-            <Card className="mt-6">
+            <Card>
               <CardHeader>
                 <CardTitle>Workflow Actions</CardTitle>
               </CardHeader>
@@ -262,7 +264,7 @@ tasks:
           {/* Main Content Area */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chat" className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />
                   Chat Interface
@@ -270,6 +272,10 @@ tasks:
                 <TabsTrigger value="yaml" className="flex items-center gap-2">
                   <Upload className="h-4 w-4" />
                   YAML Definition
+                </TabsTrigger>
+                <TabsTrigger value="config" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Configuration
                 </TabsTrigger>
               </TabsList>
               
@@ -316,6 +322,20 @@ tasks:
                         </Button>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="config" className="p-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Configuration</CardTitle>
+                    <CardDescription>
+                      Configure API endpoints and authentication settings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ConfigurationMenuFixed />
                   </CardContent>
                 </Card>
               </TabsContent>

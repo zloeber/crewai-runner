@@ -1,11 +1,5 @@
 # Instructions for crewai-runner
 
-## Project Paths
-
-`./frontend` - A NodeJS/React/Vite frontend. Read `./frontend/AGENTS.md` for frontend development guidelines.
-`./api` - FastMCP/FastAPI/Click-based Python wrapper to CrewAI. Read `./api/AGENTS.md` for backend development guidelines.
-`./API_SCHEMA.md` - API endpoints and configuration requirements for both frontend and backend.
-
 ## Rules
 - Before running any command, check the current terminal context and use that same terminal ID for all subsequent commands.
 - All documentation created must be created in the ./docs folder and should be added to the ./mkdocs.yml file for inclusion in the site.
@@ -13,6 +7,7 @@
 - Do not run multiple line python commands in a single execution, instead create temporary scripts if needed and run them as single commands.
 - **Always run tests and linting** before committing changes to ensure code quality.
 - Use `uv` package manager instead of `pip` for dependency management.
+- Do not create comprehensive documentation when finished resolving an issue or implementing a feature unless explicitly told to do so.
 
 ## Code Style Guidelines
 - Follow PEP 8 style guide
@@ -35,18 +30,12 @@ uv sync                    # Install dependencies (uses uv, not pip)
 python -m pytest          # Run tests
 python -m terraform_ingest.cli --help  # CLI access
 ```
-## Testing Patterns
-- Pydantic model validation in `test_models.py`  
-- Use `pytest` fixtures for sample configurations
-- Mock git operations for reproducible tests
-- Run tests with: `uv run pytest --maxfail=1 --disable-warnings -v tests`
-- Test coverage: 41 tests across models, API, MCP service, and parser
 
 ## Linting & Formatting
 ```bash
 # Check formatting (required before commit)
-uv run black --check src/
-uv run ruff format --check src/
+uv run black --check src
+uv run ruff format --check src
 
 # Auto-fix formatting (required before commit)
 uv run black src/
@@ -93,6 +82,11 @@ uv remove <package-name>
 1. Run `uv sync` to install them
 2. Run tests to ensure compatibility
 3. Commit both `pyproject.toml` and `uv.lock` files
+
+## Environment Variables
+- `TERRAFORM_INGEST_OUTPUT_DIR`: Default output directory for JSON summaries (default: `./output`)
+- Git credentials automatically detected from system for private repositories
+- No required environment variables for basic operation
 
 ## Common Tasks
 ```bash

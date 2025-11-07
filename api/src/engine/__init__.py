@@ -59,4 +59,4 @@ CONFIG_PATH = os.getenv(
     pathlib.Path().joinpath(pathlib.Path().resolve(), ("config.yaml")),
 )
 
-__version__ = _get_hatch_version() or _get_importlib_metadata_version()
+__version__ = _get_hatch_version() or "0.1.0-dev"

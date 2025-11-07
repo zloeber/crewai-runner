@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { crewAIApi } from "@/services/crewai-api";
 
 interface ConnectionStatus {
   isConnected: boolean;
@@ -24,11 +25,10 @@ export function ConnectionMonitor() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-
   const checkConnection = async () => {
     setIsLoading(true);
     const startTime = Date.now();
+    const API_BASE_URL = crewAIApi.getApiBaseUrl();
     
     try {
       const response = await fetch(`${API_BASE_URL}/health`, {
@@ -60,8 +60,8 @@ export function ConnectionMonitor() {
         error: errorMessage,
       });
       
-      // Only show toast for connection failures
-      if (!status.isConnected) {
+      // Only show toast for connection failures, not for repeated failures
+      if (status.isConnected) {
         toast({
           title: "Connection Error",
           description: `Failed to connect to backend: ${errorMessage}`,
@@ -164,7 +164,7 @@ export function ConnectionMonitor() {
           
           <div className="pt-2 border-t">
             <div className="text-xs text-muted-foreground">
-              <div>API Endpoint: {API_BASE_URL}</div>
+              <div>API Endpoint: {crewAIApi.getApiBaseUrl()}</div>
               <div className="mt-1">
                 {status.isConnected 
                   ? "Connection established" 

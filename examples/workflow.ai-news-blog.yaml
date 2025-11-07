@@ -1,0 +1,195 @@
+name: AI News Blog Crew
+description: Multi-agent workflow for discovering recent AI and IT news and creating compelling technical blog posts using MCP servers
+
+agents:
+  - name: news_researcher
+    role: AI & IT News Research Specialist
+    goal: Discover and analyze the latest AI and IT news from multiple sources to identify trending topics and breakthrough developments
+    backstory: >
+      You are an expert technology journalist with deep knowledge of AI, machine learning, 
+      cloud computing, and emerging IT trends. You have a keen eye for identifying significant 
+      developments that will impact the industry and can quickly assess the credibility and 
+      importance of news sources. Your research skills are enhanced by sophisticated web 
+      search capabilities and access to real-time information.
+    model: gpt-4o
+    tools: 
+      - "mcp_searxng_searxng_web_search"
+      - "mcp_searxng_web_url_read"
+    allowDelegation: false
+    verbose: true
+
+  - name: content_analyzer
+    role: Technical Content Analyst
+    goal: Analyze research findings to extract key insights, verify technical accuracy, and identify the most compelling angles for blog content
+    backstory: >
+      You are a senior technical analyst with expertise in AI/ML systems, cloud architecture, 
+      and emerging technologies. Your role is to distill complex technical information into 
+      clear insights, fact-check claims, and identify the human impact and business implications 
+      of technological developments. You excel at connecting dots between different pieces of 
+      information to reveal larger trends and patterns.
+    model: gpt-4o
+    tools:
+      - "mcp_context7_resolve-library-id"
+      - "mcp_context7_get-library-docs"
+      - "mcp_sequential-th_sequentialthinking"
+    allowDelegation: false
+    verbose: true
+
+  - name: blog_writer
+    role: Technical Blog Content Creator
+    goal: Create engaging, well-structured blog posts that make complex technical topics accessible to both technical and business audiences
+    backstory: >
+      You are an accomplished technical writer with a talent for making complex AI and IT 
+      concepts accessible to diverse audiences. Your writing style combines technical accuracy 
+      with engaging storytelling, and you understand how to structure content for maximum 
+      impact on blogs and social media. You have experience writing for major tech publications 
+      and understand SEO best practices for technical content.
+    model: gpt-4o
+    tools:
+      - "mcp_server-filesy_create_directory"
+      - "mcp_server-filesy_write_file"
+      - "mcp_sequential-th_sequentialthinking"
+    allowDelegation: false
+    verbose: true
+
+  - name: fact_checker
+    role: Technical Fact Verification Specialist
+    goal: Verify technical claims, check sources, and ensure accuracy of all technical statements in the blog content
+    backstory: >
+      You are a meticulous fact-checker with deep technical expertise across AI, machine learning, 
+      cloud computing, and software engineering. Your role is to verify every technical claim, 
+      cross-reference sources, and ensure that all statements in the blog posts are accurate 
+      and properly attributed. You have access to authoritative technical documentation and 
+      can quickly verify implementation details and technical specifications.
+    model: gpt-4o
+    tools:
+      - "mcp_searxng_searxng_web_search"
+      - "mcp_searxng_web_url_read"
+      - "mcp_context7_resolve-library-id"
+      - "mcp_context7_get-library-docs"
+    allowDelegation: false
+    verbose: true
+
+tasks:
+  - name: discover_trending_news
+    description: >
+      Search for the latest AI and IT news from the past 7 days. Focus on:
+      1. Major AI model releases or updates (GPT, Claude, Gemini, etc.)
+      2. Breakthrough research papers and their implications
+      3. Enterprise AI adoption stories and case studies
+      4. Cloud computing and infrastructure developments
+      5. Open source AI tools and frameworks
+      6. AI regulation and policy updates
+      7. Startup funding and tech industry acquisitions
+      
+      Use multiple search queries to ensure comprehensive coverage. For each significant 
+      story found, read the full article content to understand the details and implications.
+      Rank stories by potential impact and audience interest.
+    expected_output: >
+      A comprehensive research report containing:
+      - Top 10 most significant AI/IT news stories from the past week
+      - For each story: headline, source, publication date, key facts, and technical details
+      - Impact assessment for each story (industry significance, technical innovation level)
+      - Identification of 3-5 stories with highest blog potential
+      - Source URLs and credibility assessment for each story
+    agent: news_researcher
+    tools: 
+      - "mcp_searxng_searxng_web_search"
+      - "mcp_searxng_web_url_read"
+    asyncExecution: false
+    outputJson: false
+
+  - name: analyze_technical_content
+    description: >
+      Analyze the research findings to identify the most compelling technical stories for blog content.
+      For the top 3-5 stories identified by the researcher:
+      1. Deep-dive into technical details and implications
+      2. Research related technologies and background context
+      3. Identify the human impact and business value
+      4. Find connections between different stories to identify larger trends
+      5. Assess what makes each story compelling for different audience segments
+      6. Determine the best angle and narrative structure for each potential blog post
+      
+      Use sequential thinking to work through complex technical concepts and their implications.
+      Leverage technical documentation when available to provide authoritative context.
+    expected_output: >
+      A detailed content analysis report containing:
+      - Technical deep-dive for each selected story
+      - Business and human impact assessment
+      - Recommended narrative angles and blog post structures
+      - Target audience identification for each story
+      - Key technical concepts that need explanation
+      - Suggested blog post titles and compelling hooks
+      - Cross-story connections and emerging trend analysis
+    agent: content_analyzer
+    tools:
+      - "mcp_context7_resolve-library-id"
+      - "mcp_context7_get-library-docs"
+      - "mcp_sequential-th_sequentialthinking"
+    context: ["discover_trending_news"]
+    asyncExecution: false
+    outputJson: false
+
+  - name: create_blog_posts
+    description: >
+      Create 2-3 compelling blog posts based on the analyzed content. Each blog post should:
+      1. Have an engaging headline that captures the story's significance
+      2. Include an compelling introduction that hooks the reader
+      3. Provide clear explanations of technical concepts for mixed audiences
+      4. Include real-world implications and business impact
+      5. Use proper structure with headers, bullet points, and readable formatting
+      6. Include calls-to-action and discussion prompts
+      7. Be optimized for social sharing and SEO
+      
+      Save each blog post as a separate markdown file in a dedicated directory.
+      Use sequential thinking to plan and structure each post for maximum impact.
+    expected_output: >
+      2-3 complete blog posts saved as markdown files, each containing:
+      - Compelling headline (H1)
+      - Executive summary/key takeaways box
+      - Introduction that establishes stakes and hooks reader
+      - Main content sections with clear headers (H2/H3)
+      - Technical explanations accessible to general audience
+      - Business impact and implications section
+      - Conclusion with key takeaways and future outlook
+      - Meta description and suggested social media posts
+      - 1500-2500 words per post, publication-ready
+    agent: blog_writer
+    tools:
+      - "mcp_server-filesy_create_directory"
+      - "mcp_server-filesy_write_file"
+      - "mcp_sequential-th_sequentialthinking"
+    context: ["discover_trending_news", "analyze_technical_content"]
+    asyncExecution: false
+    outputJson: false
+
+  - name: verify_technical_accuracy
+    description: >
+      Perform comprehensive fact-checking on all technical claims made in the blog posts:
+      1. Verify all technical specifications, version numbers, and capabilities mentioned
+      2. Cross-reference claims against official documentation and authoritative sources
+      3. Check that company names, product names, and technical terms are accurate
+      4. Validate any performance metrics, benchmarks, or statistical claims
+      5. Ensure proper attribution of quotes and sources
+      6. Verify links and references are current and functional
+      7. Flag any claims that need additional sourcing or qualification
+      
+      Provide detailed feedback with corrections and suggestions for improvement.
+    expected_output: >
+      A comprehensive fact-check report containing:
+      - Line-by-line verification of technical claims in each blog post
+      - List of any inaccuracies found with suggested corrections
+      - Additional sources to strengthen weak claims
+      - Verification of all company names, product names, and technical terms
+      - Assessment of overall technical accuracy and credibility
+      - Recommendations for improving factual strength
+      - Final approval status for each blog post
+    agent: fact_checker
+    tools:
+      - "mcp_searxng_searxng_web_search"
+      - "mcp_searxng_web_url_read"
+      - "mcp_context7_resolve-library-id"
+      - "mcp_context7_get-library-docs"
+    context: ["create_blog_posts"]
+    asyncExecution: false
+    outputJson: false

@@ -35,6 +35,8 @@ services:
       - "5173:5173"  # Vite dev server port
     environment:
       - NODE_ENV=development
+      - VITE_CREWAI_RUNNER_API_HOST=${CREWAI_RUNNER_API_HOST:-http://localhost:8000/api}
+      - VITE_CREWAI_API_TOKEN=${CREWAI_API_TOKEN:-}
     volumes:
       - ./frontend:/app
       - /app/node_modules
