@@ -1,6 +1,6 @@
 # Tech Stack - Frontend
 
-- You are building a React application in ./frontend`
+- You are building a React application in the ./frontend folder
 - Use TypeScript.
 - Use React Router. KEEP the routes in src/App.tsx
 - Always put source code in the src folder.

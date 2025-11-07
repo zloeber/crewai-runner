@@ -76,13 +76,15 @@ async def root():
         "health": "/health",
     }
 
+def run_server(host: str = "0.0.0.0", port: int = 8000):
+    """Run the FastAPI server."""
+    import uvicorn
+
+    uvicorn.run(app,
+            host=settings.host,
+            port=settings.port,
+            reload=settings.reload)
+
 
 if __name__ == "__main__":
-    import uvicorn
-    
-    uvicorn.run(
-        "main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.reload,
-    )
+    run_server()
