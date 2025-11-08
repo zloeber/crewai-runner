@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { MessageCircle, Settings, Play, Square, Upload, FileText } from "lucide-react";
+import { MessageCircle, Settings, Play, Square, Upload, FileText, Server } from "lucide-react";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ProviderConfig } from "@/components/ProviderConfig";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -229,6 +230,12 @@ tasks:
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <Link to="/mcp">
+                <Button variant="outline" size="sm">
+                  <Server className="mr-2 h-4 w-4" />
+                  MCP Servers
+                </Button>
+              </Link>
               <ThemeToggle />
             </div>
           </div>

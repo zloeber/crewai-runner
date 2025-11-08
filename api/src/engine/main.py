@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from config import settings
 from models import ErrorResponse
-from routers import providers, models, workflows, chat, yaml_validator, profiles
+from routers import providers, models, workflows, chat, yaml_validator, profiles, mcp
 from services.orchestrator_factory import OrchestratorFactory
 from adapters import CrewAIAdapter, LangGraphAdapter
 
@@ -40,6 +40,7 @@ app.include_router(workflows.router, prefix=settings.api_base_url)
 app.include_router(chat.router, prefix=settings.api_base_url)
 app.include_router(yaml_validator.router, prefix=settings.api_base_url)
 app.include_router(profiles.router, prefix=settings.api_base_url)
+app.include_router(mcp.router, prefix=settings.api_base_url)
 
 
 # Exception handlers
