@@ -509,6 +509,237 @@ Authorization: Bearer <API_KEY>
 }
 ```
 
+### MCP (Model Context Protocol)
+
+#### List MCP Servers
+- **URL**: `GET /mcp/servers`
+- **Description**: List all registered MCP servers
+- **Response**:
+```json
+{
+  "servers": [
+    {
+      "id": "string",
+      "name": "string",
+      "description": "string (optional)",
+      "transport": {
+        "type": "stdio|http|websocket",
+        "command": "string (optional)",
+        "args": ["string"] (optional),
+        "host": "string (optional)",
+        "port": "number (optional)",
+        "url": "string (optional)"
+      },
+      "env": {"key": "value"},
+      "tools": ["string"],
+      "enabled": "boolean",
+      "status": "connected|disconnected|error",
+      "error_message": "string (optional)"
+    }
+  ]
+}
+```
+
+#### Add MCP Server
+- **URL**: `POST /mcp/servers`
+- **Description**: Register a new MCP server
+- **Request Body**:
+```json
+{
+  "server": {
+    "name": "string",
+    "description": "string (optional)",
+    "transport": {
+      "type": "stdio|http|websocket",
+      "command": "string (optional)",
+      "args": ["string"] (optional),
+      "host": "string (optional)",
+      "port": "number (optional)",
+      "url": "string (optional)"
+    },
+    "env": {"key": "value"},
+    "tools": ["string"],
+    "enabled": "boolean"
+  }
+}
+```
+- **Response**:
+```json
+{
+  "server": {
+    "id": "string",
+    "name": "string",
+    "description": "string (optional)",
+    "transport": {...},
+    "env": {...},
+    "tools": [...],
+    "enabled": "boolean",
+    "status": "connected|disconnected|error"
+  }
+}
+```
+
+#### Update MCP Server
+- **URL**: `PUT /mcp/servers/{id}`
+- **Description**: Update an existing MCP server configuration
+- **Request Body**: Same as Add MCP Server
+- **Response**: Same as Add MCP Server
+
+#### Delete MCP Server
+- **URL**: `DELETE /mcp/servers/{id}`
+- **Description**: Remove an MCP server
+- **Response**:
+```json
+{
+  "id": "string",
+  "message": "string"
+}
+```
+
+#### Test MCP Connection
+- **URL**: `POST /mcp/servers/{id}/connect`
+- **Description**: Test connection to an MCP server
+- **Response**:
+```json
+{
+  "server_id": "string",
+  "connection_status": {
+    "status": "connected|disconnected|error",
+    "message": "string",
+    "latency_ms": "number (optional)",
+    "transport_type": "string",
+    "initialization_success": "boolean"
+  }
+}
+```
+
+#### Get MCP Server Status
+- **URL**: `GET /mcp/servers/{id}/status`
+- **Description**: Get current connection status of an MCP server
+- **Response**:
+```json
+{
+  "status": "connected|disconnected|error",
+  "message": "string",
+  "latency_ms": "number (optional)",
+  "transport_type": "string",
+  "initialization_success": "boolean"
+}
+```
+
+#### List Server Tools
+- **URL**: `GET /mcp/servers/{id}/tools`
+- **Description**: List all tools provided by a specific MCP server
+- **Response**:
+```json
+{
+  "tools": [
+    {
+      "id": "string",
+      "server_id": "string",
+      "server_name": "string",
+      "name": "string",
+      "description": "string (optional)",
+      "input_schema": {...},
+      "output_schema": {...} (optional)
+    }
+  ]
+}
+```
+
+#### List All Tools
+- **URL**: `GET /mcp/tools`
+- **Description**: List all tools from all connected MCP servers
+- **Response**: Same as List Server Tools
+
+#### Test MCP Tool
+- **URL**: `POST /mcp/tools/test`
+- **Description**: Execute a tool for testing purposes
+- **Request Body**:
+```json
+{
+  "server_id": "string",
+  "tool_name": "string",
+  "parameters": {...}
+}
+```
+- **Response**:
+```json
+{
+  "tool_name": "string",
+  "success": "boolean",
+  "result": "any (optional)",
+  "error": "string (optional)",
+  "execution_time_ms": "number",
+  "request": {...},
+  "response": {...}
+}
+```
+
+#### Get Tool Schema
+- **URL**: `GET /mcp/tools/{tool_id}/schema`
+- **Description**: Get detailed schema for a specific tool (tool_id format: "server_id:tool_name")
+- **Response**:
+```json
+{
+  "tool_id": "string",
+  "name": "string",
+  "description": "string (optional)",
+  "input_schema": {...},
+  "output_schema": {...} (optional)
+}
+```
+
+#### Import MCP Configuration
+- **URL**: `POST /mcp/import/config`
+- **Description**: Import MCP servers from configuration file (Claude Desktop, Cline, etc.)
+- **Request Body**:
+```json
+{
+  "config_content": "string (JSON content)",
+  "config_format": "claude_desktop|cline|custom"
+}
+```
+- **Response**:
+```json
+{
+  "imported_count": "number",
+  "servers": [...],
+  "message": "string"
+}
+```
+
+#### Export MCP Configuration
+- **URL**: `GET /mcp/export/config?format=custom`
+- **Description**: Export current MCP server configuration
+- **Query Parameters**:
+  - `format` (optional): Export format (default: "custom")
+- **Response**:
+```json
+{
+  "config_content": "string",
+  "format": "string"
+}
+```
+
+#### Export Tool Definition
+- **URL**: `POST /mcp/tools/{tool_id}/export`
+- **Description**: Export tool definition in framework-specific format
+- **Request Body**:
+```json
+{
+  "framework": "crewai|langgraph|yaml"
+}
+```
+- **Response**:
+```json
+{
+  "tool_definition": "string",
+  "framework": "string",
+  "instructions": "string (optional)"
+}
+```
+
 ## Error Responses
 All endpoints may return the following error responses:
 
