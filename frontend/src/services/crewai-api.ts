@@ -17,8 +17,20 @@ import {
   AddModelResponse,
   ProviderConfig,
   ModelConfig,
-  WorkflowConfig
-} from "@/types/crewai-api";
+  WorkflowConfig,
+  // Profile types
+  ProfileListResponse,
+  LoadProfileRequest,
+  LoadProfileResponse,
+  SaveProfileRequest,
+  SaveProfileResponse,
+  DeleteProfileRequest,
+  DeleteProfileResponse,
+  ExportProfileResponse,
+  ImportProfileRequest,
+  ImportProfileResponse,
+  ProfileConfig
+} from "../types/crewai-api";
 
 class CrewAIApi {
   private authToken: string | null = null;
@@ -231,6 +243,51 @@ class CrewAIApi {
       // For other errors, we assume auth is OK but there's another issue
       return true;
     }
+  }
+
+  // Profile management endpoints
+  async listProfiles(): Promise<ProfileListResponse> {
+    try {
+      return await this.request("/profiles");
+    } catch (error) {
+      console.warn("Failed to load profiles, using empty list:", error);
+      return { profiles: [] };
+    }
+  }
+
+  async loadProfile(data: LoadProfileRequest): Promise<LoadProfileResponse> {
+    return this.request("/profiles/load", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getProfile(name: string): Promise<LoadProfileResponse> {
+    return this.request(`/profiles/${encodeURIComponent(name)}`);
+  }
+
+  async saveProfile(data: SaveProfileRequest): Promise<SaveProfileResponse> {
+    return this.request("/profiles/save", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProfile(name: string): Promise<DeleteProfileResponse> {
+    return this.request(`/profiles/${encodeURIComponent(name)}`, {
+      method: "DELETE",
+    });
+  }
+
+  async exportProfile(name: string): Promise<ExportProfileResponse> {
+    return this.request(`/profiles/${encodeURIComponent(name)}/export`);
+  }
+
+  async importProfile(data: ImportProfileRequest): Promise<ImportProfileResponse> {
+    return this.request("/profiles/import", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 }
 

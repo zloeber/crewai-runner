@@ -1,127 +1,324 @@
-# CrewAI Profile Configuration System
+# CrewAI Profile Schema and Components
+
+This document describes the comprehensive profile management system for CrewAI, including common schemas, validation utilities, and React components.
 
 ## Overview
 
-The CrewAI Profile Configuration system allows you to define and manage high-level configurations that can be applied to workflows. Profiles contain:
+The profile system provides a standardized way to configure and manage CrewAI deployments including:
 
-- **MCP Server Definitions**: Configure Model Context Protocol servers with their transport, environment, and tools
-- **Model Provider Configurations**: Define AI model providers and their available models
-- **Model Override Rules**: Automatically apply specific models to agents based on patterns or names
-- **Default Tool Sets**: Pre-defined tool combinations for common agent roles
-- **Workflow Defaults**: Standard configurations for workflow execution
-- **Environment Variables**: Shared environment configuration
-- **Security Settings**: Access controls and rate limits
+- **MCP Server configurations** - Define which MCP servers are available to workflows
+- **Provider configurations** - Configure AI providers (OpenAI, Anthropic, Ollama, etc.)
+- **Model overrides** - Override default models for specific agents or patterns
+- **Workflow defaults** - Set default behavior for workflows, agents, and tasks
+- **Security settings** - Define security constraints and permissions
+- **Environment variables** - Configure environment-specific settings
 
-## API Endpoints
+## Directory Structure
 
-The profile system provides a complete REST API for managing profiles:
-
-### List Profiles
-```http
-GET /api/profiles
 ```
-Returns all available profiles with their metadata.
+schemas/
+├── profile.schema.json      # JSON Schema for validation
+├── profile.types.ts         # TypeScript type definitions
+├── profile.validator.ts     # Validation utilities
+├── profile.manager.ts       # Profile management client
+└── index.ts                 # Exports and utilities
 
-### Load Profile
-```http
-POST /api/profiles/load
-Content-Type: application/json
-
-{
-  "name": "default"
-}
-```
-
-### Save Profile
-```http
-POST /api/profiles/save
-Content-Type: application/json
-
-{
-  "profile": { ... },
-  "overwrite": false
-}
+frontend/src/
+├── components/
+│   ├── ProfileDisplay.tsx   # Component to display profile information
+│   └── ProfileSelector.tsx  # Component to select and load profiles
+├── hooks/
+│   └── use-profiles.ts      # React hook for profile management
+└── types/
+    └── crewai-api.ts        # API types (includes profile types)
 ```
 
-### Get Profile
-```http
-GET /api/profiles/{name}
-```
+## Schema Structure
 
-### Delete Profile
-```http
-DELETE /api/profiles/{name}
-```
+### Profile Configuration
 
-### Export Profile as YAML
-```http
-GET /api/profiles/{name}/export
-```
-
-### Import Profile from YAML
-```http
-POST /api/profiles/import
-Content-Type: application/json
-
-{
-  "yamlContent": "...",
-  "overwrite": false
-}
-```
-
-## Profile YAML Structure
+A profile configuration follows this structure:
 
 ```yaml
 apiVersion: crewai/v1
 kind: Profile
 metadata:
   name: profile-name
-  description: Profile description
+  description: "Profile description"
   version: "1.0.0"
   created: "2024-11-07T00:00:00Z"
-  tags: ["tag1", "tag2"]
+  tags:
+    - production
+    - default
 
-# MCP Server configurations
 mcpServers:
   - name: searxng
-    description: Web search and content retrieval
+    description: "Web search capabilities"
     transport:
       type: stdio
       command: "uvx"
       args: ["mcp-server-searxng"]
     env:
-      SEARXNG_BASE_URL: "https://search.inetol.net"
+      SEARXNG_BASE_URL: "https://search.example.com"
     tools:
       - mcp_searxng_searxng_web_search
       - mcp_searxng_web_url_read
+    enabled: true
 
-# Model provider configurations
 providers:
   - name: openai
     type: openai
-    apiKey: "${OPENAI_API_KEY}"
+    apiKey: "sk-..."
     models:
-      - name: gpt-4o
+      - name: gpt-4
         type: llm
-        providerId: openai
-        endpoint: "gpt-4o"
+        endpoint: "/v1/chat/completions"
         default: true
 
-# Model override rules
 modelOverrides:
-  - pattern: "*researcher*"
-    model: gpt-4o
-    reason: "Research agents benefit from GPT-4's capabilities"
-  
-  - agentName: "specific_agent"
-    model: claude-3-5-sonnet-20241022
-    reason: "This agent works better with Claude"
+  - pattern: "researcher.*"
+    model: "gpt-4"
+    reason: "Researchers need high-quality reasoning"
 
-# Default tool sets for common roles
-defaultToolSets:
-  researcher:
-    - mcp_searxng_searxng_web_search
-    - mcp_searxng_web_url_read
+workflowDefaults:
+  verbose: true
+  allowDelegation: false
+  maxConcurrentTasks: 3
+  timeoutMinutes: 30
+  agentDefaults:
+    verbose: true
+    allowDelegation: false
+    tools: []
+  taskDefaults:
+    asyncExecution: false
+    outputJson: false
+
+environment:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+
+security:
+  allowedDomains:
+    - "api.openai.com"
+    - "api.anthropic.com"
+  restrictedTools: []
+  rateLimits:
+    requests_per_minute: 60
+```
+
+## TypeScript Types
+
+All profile types are available in `frontend/src/types/crewai-api.ts`:
+
+```typescript
+import type { 
+  ProfileConfig, 
+  ProfileMetadata,
+  MCPServerConfig,
+  ProviderConfig,
+  ModelOverride,
+  WorkflowDefaults 
+} from '../types/crewai-api';
+```
+
+## Validation
+
+### JSON Schema Validation
+
+The `profile.schema.json` file provides comprehensive JSON Schema validation for profile configurations. Use it with JSON Schema validators to ensure profile validity.
+
+### TypeScript Validation
+
+The `ProfileValidator` class provides client-side validation:
+
+```typescript
+import { ProfileValidator } from './schemas/profile.validator';
+
+const validation = ProfileValidator.validateProfile(profileConfig);
+if (!validation.isValid) {
+  console.error('Validation errors:', validation.errors);
+}
+```
+
+### Validation Features
+
+- **Required field validation** - Ensures all required fields are present
+- **Format validation** - Validates profile names, versions, URLs, etc.
+- **Type validation** - Ensures correct data types
+- **Cross-reference validation** - Validates relationships between fields
+- **Security validation** - Checks security settings for consistency
+
+## Profile Management
+
+### Server-side Management
+
+Use the `ProfileManager` class for server-side profile operations:
+
+```typescript
+import { ProfileManager } from './schemas/profile.manager';
+
+const manager = new ProfileManager('http://localhost:8000', 'your-api-token');
+
+// List profiles
+const profiles = await manager.listProfiles();
+
+// Load a profile
+const profile = await manager.loadProfile('default');
+
+// Save a profile
+await manager.saveProfile(profileConfig, false);
+
+// Export/Import
+const exported = await manager.exportProfile('default');
+await manager.importProfile(yamlContent, false);
+```
+
+### React Components
+
+#### ProfileSelector
+
+A component for selecting and loading profiles:
+
+```tsx
+import { ProfileSelector } from '../components/ProfileSelector';
+
+<ProfileSelector
+  onProfileSelected={(profile) => console.log('Profile loaded:', profile)}
+  onManageProfiles={() => console.log('Manage profiles')}
+/>
+```
+
+#### ProfileDisplay
+
+A component for displaying detailed profile information:
+
+```tsx
+import { ProfileDisplay } from '../components/ProfileDisplay';
+
+<ProfileDisplay
+  profile={currentProfile}
+  onExport={(name) => console.log('Export profile:', name)}
+  onEdit={(profile) => console.log('Edit profile:', profile)}
+/>
+```
+
+### React Hook
+
+Use the `useProfiles` hook for profile state management:
+
+```tsx
+import { useProfiles } from '../hooks/use-profiles';
+
+function MyComponent() {
+  const {
+    profiles,
+    currentProfile,
+    loading,
+    error,
+    loadProfile,
+    saveProfile,
+    deleteProfile
+  } = useProfiles();
+
+  // Component logic here
+}
+```
+
+## API Endpoints
+
+The profile system integrates with the following API endpoints:
+
+- `GET /api/profiles` - List all profiles
+- `POST /api/profiles/load` - Load a specific profile
+- `GET /api/profiles/{name}` - Get a profile by name
+- `POST /api/profiles/save` - Save a profile
+- `DELETE /api/profiles/{name}` - Delete a profile
+- `GET /api/profiles/{name}/export` - Export profile as YAML
+- `POST /api/profiles/import` - Import profile from YAML
+
+## Usage Examples
+
+### Creating a New Profile
+
+```typescript
+const newProfile: ProfileConfig = {
+  apiVersion: 'crewai/v1',
+  kind: 'Profile',
+  metadata: {
+    name: 'my-profile',
+    description: 'My custom profile',
+    version: '1.0.0',
+    tags: ['custom']
+  },
+  mcpServers: [],
+  providers: [],
+  modelOverrides: [],
+  workflowDefaults: {
+    verbose: true,
+    allowDelegation: false,
+    maxConcurrentTasks: 3,
+    timeoutMinutes: 30
+  }
+};
+
+await saveProfile(newProfile);
+```
+
+### Loading and Using a Profile
+
+```typescript
+// Load profile
+await loadProfile('default');
+
+// Access profile data
+if (currentProfile) {
+  console.log('Profile name:', currentProfile.metadata.name);
+  console.log('MCP servers:', currentProfile.mcpServers?.length);
+  console.log('Providers:', currentProfile.providers?.length);
+}
+```
+
+### Exporting a Profile
+
+```typescript
+const exported = await exportProfile('default');
+console.log('YAML content:', exported.yamlContent);
+
+// Save to file
+const blob = new Blob([exported.yamlContent], { type: 'text/yaml' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `${exported.name}.yaml`;
+a.click();
+```
+
+## Best Practices
+
+1. **Profile Naming** - Use lowercase, alphanumeric characters with hyphens
+2. **Versioning** - Follow semantic versioning (major.minor.patch)
+3. **Descriptions** - Always provide meaningful descriptions
+4. **Tags** - Use tags to categorize profiles (e.g., 'production', 'development')
+5. **Validation** - Always validate profiles before saving
+6. **Security** - Be careful with API keys and sensitive data
+7. **Environment Variables** - Use environment variables for deployment-specific settings
+
+## Error Handling
+
+The system provides comprehensive error handling:
+
+- **Validation errors** - Detailed field-level validation errors
+- **API errors** - HTTP status codes and error messages
+- **Network errors** - Connection and timeout handling
+- **Authentication errors** - Token validation and refresh
+
+## Security Considerations
+
+- API keys are masked in UI displays
+- Sensitive environment variables should be handled carefully
+- Profile imports/exports should be validated
+- Access control should be implemented at the API level
+- Rate limiting should be configured appropriately
   writer:
     - mcp_server-filesy_write_file
     - mcp_sequential-th_sequentialthinking

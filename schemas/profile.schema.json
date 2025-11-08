@@ -1,0 +1,370 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://crewai-runner.com/schemas/profile.schema.json",
+  "title": "CrewAI Profile Configuration",
+  "description": "Schema for CrewAI profile configuration files",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "enum": ["crewai/v1"],
+      "description": "API version for the profile configuration"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["Profile"],
+      "description": "Resource type identifier"
+    },
+    "metadata": {
+      "$ref": "#/definitions/ProfileMetadata"
+    },
+    "mcpServers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/MCPServerConfig"
+      },
+      "description": "MCP server configurations available to workflows"
+    },
+    "providers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Provider"
+      },
+      "description": "AI provider configurations"
+    },
+    "modelOverrides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ModelOverride"
+      },
+      "description": "Model overrides for specific agents or patterns"
+    },
+    "defaultToolSets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Default tool sets for different agent roles"
+    },
+    "workflowDefaults": {
+      "$ref": "#/definitions/WorkflowDefaults"
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Environment variables"
+    },
+    "security": {
+      "$ref": "#/definitions/SecuritySettings"
+    }
+  },
+  "definitions": {
+    "ProfileMetadata": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Profile name (lowercase, alphanumeric with hyphens)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the profile"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version of the profile"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp when profile was created"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for categorizing the profile"
+        }
+      }
+    },
+    "MCPServerConfig": {
+      "type": "object",
+      "required": ["name", "transport"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique name for the MCP server"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the MCP server functionality"
+        },
+        "transport": {
+          "$ref": "#/definitions/MCPTransport"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables for the MCP server"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Available tools from this MCP server"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this MCP server is enabled"
+        }
+      }
+    },
+    "MCPTransport": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["stdio", "http", "websocket"],
+          "description": "Transport mechanism for MCP communication"
+        },
+        "command": {
+          "type": "string",
+          "description": "Command to execute (for stdio transport)"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Command arguments (for stdio transport)"
+        },
+        "host": {
+          "type": "string",
+          "description": "Host address (for http/websocket transport)"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port number (for http/websocket transport)"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Full URL (for http/websocket transport)"
+        }
+      }
+    },
+    "Provider": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the provider"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name for the provider"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "ollama", "azure", "custom"],
+          "description": "Provider type"
+        },
+        "apiKey": {
+          "type": "string",
+          "description": "API key for the provider"
+        },
+        "baseUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL for the provider API"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Model"
+          },
+          "description": "Available models from this provider"
+        }
+      }
+    },
+    "Model": {
+      "type": "object",
+      "required": ["name", "type", "providerId", "endpoint"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the model"
+        },
+        "name": {
+          "type": "string",
+          "description": "Model name"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["llm", "embedder"],
+          "description": "Model type"
+        },
+        "providerId": {
+          "type": "string",
+          "description": "ID of the provider this model belongs to"
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "Endpoint for accessing the model"
+        },
+        "default": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this is the default model for its type"
+        }
+      }
+    },
+    "ModelOverride": {
+      "type": "object",
+      "required": ["model"],
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Regex pattern to match agent names/roles"
+        },
+        "agentName": {
+          "type": "string",
+          "description": "Specific agent name to override"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model to use for matching agents"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for the model override"
+        }
+      }
+    },
+    "WorkflowDefaults": {
+      "type": "object",
+      "properties": {
+        "verbose": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable verbose output by default"
+        },
+        "allowDelegation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow agent delegation by default"
+        },
+        "maxConcurrentTasks": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3,
+          "description": "Maximum number of concurrent tasks"
+        },
+        "timeoutMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30,
+          "description": "Default timeout for workflows in minutes"
+        },
+        "agentDefaults": {
+          "$ref": "#/definitions/AgentDefaults"
+        },
+        "taskDefaults": {
+          "$ref": "#/definitions/TaskDefaults"
+        }
+      }
+    },
+    "AgentDefaults": {
+      "type": "object",
+      "properties": {
+        "verbose": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable verbose output for agents"
+        },
+        "allowDelegation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow agents to delegate tasks"
+        },
+        "model": {
+          "type": "string",
+          "description": "Default model for agents"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Default tools for agents"
+        }
+      }
+    },
+    "TaskDefaults": {
+      "type": "object",
+      "properties": {
+        "asyncExecution": {
+          "type": "boolean",
+          "default": false,
+          "description": "Execute tasks asynchronously by default"
+        },
+        "outputJson": {
+          "type": "boolean",
+          "default": false,
+          "description": "Output results as JSON by default"
+        },
+        "timeoutMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Default timeout for tasks in minutes"
+        }
+      }
+    },
+    "SecuritySettings": {
+      "type": "object",
+      "properties": {
+        "allowedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "hostname"
+          },
+          "description": "Allowed domains for external requests"
+        },
+        "restrictedTools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tools that are restricted from use"
+        },
+        "rateLimits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "Rate limits for various operations"
+        }
+      }
+    }
+  }
+}
