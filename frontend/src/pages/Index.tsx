@@ -16,6 +16,7 @@ import { ProviderConfig } from "@/components/ProviderConfig";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ConnectionMonitor } from "@/components/ConnectionMonitor";
 import ConfigurationMenuFixed from '@/components/ConfigurationMenuFixed';
+import { FrameworkSelector } from "@/components/FrameworkSelector";
 import { crewAIApi } from "@/services/crewai-api";
 import { useToast } from "@/hooks/use-toast";
 import { StartWorkflowResponse, ValidateYamlResponse, WorkflowConfig } from "@/types/crewai-api";
@@ -25,7 +26,9 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState("chat");
   const [isRunning, setIsRunning] = useState(false);
   const [workflowId, setWorkflowId] = useState<string | null>(null);
+  const [selectedFramework, setSelectedFramework] = useState("crewai");
   const [yamlContent, setYamlContent] = useState(`name: ResearchCrew
+framework: crewai
 agents:
   - name: researcher
     role: Senior Research Analyst
@@ -48,6 +51,61 @@ tasks:
     expected_output: A 3 paragraph article...
     agent: writer`);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFrameworkChange = (framework: string) => {
+    setSelectedFramework(framework);
+    
+    // Update YAML example based on framework
+    if (framework === "langgraph") {
+      setYamlContent(`name: ResearchGraph
+framework: langgraph
+description: A LangGraph workflow for research
+nodes:
+  - id: researcher
+    type: agent
+    config:
+      role: Senior Research Analyst
+      goal: Uncover cutting-edge developments in AI
+      model: gpt-4
+  
+  - id: writer
+    type: agent
+    config:
+      role: Tech Content Strategist
+      goal: Craft compelling content
+      model: gpt-4
+
+edges:
+  - source: researcher
+    target: writer
+  - source: writer
+    target: END`);
+    } else {
+      setYamlContent(`name: ResearchCrew
+framework: crewai
+agents:
+  - name: researcher
+    role: Senior Research Analyst
+    goal: Uncover cutting-edge developments in AI and data science
+    backstory: You work at a leading tech think tank...
+    
+  - name: writer
+    role: Tech Content Strategist
+    goal: Craft compelling content on tech advancements
+    backstory: You are a renowned Content Strategist...
+
+tasks:
+  - name: research_task
+    description: Investigate the latest AI trends...
+    expected_output: A comprehensive 3 paragraphs report...
+    agent: researcher
+
+  - name: writing_task
+    description: Write a compelling article...
+    expected_output: A 3 paragraph article...
+    agent: writer`);
+    }
+  };
 
   const handleStartWorkflow = async () => {
     if (isRunning) {
@@ -88,9 +146,10 @@ tasks:
         return;
       }
 
-      // Start workflow
+      // Start workflow with framework
       const response: StartWorkflowResponse = await crewAIApi.startWorkflow({
         workflow: validationResponse.workflow!,
+        framework: selectedFramework,
       });
       
       setWorkflowId(response.workflowId);
@@ -98,7 +157,7 @@ tasks:
       
       toast({
         title: "Success",
-        description: "Workflow started successfully",
+        description: `${selectedFramework.toUpperCase()} workflow started successfully`,
       });
     } catch (error) {
       toast({
@@ -198,6 +257,13 @@ tasks:
                 <CardTitle>Workflow Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <FrameworkSelector 
+                  value={selectedFramework} 
+                  onChange={handleFrameworkChange} 
+                />
+                
+                <Separator />
+                
                 <div className="flex gap-2">
                   <Button 
                     className="flex-1" 

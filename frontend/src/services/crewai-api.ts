@@ -161,6 +161,15 @@ class CrewAIApi {
     return this.request(`/workflows/${data.workflowId}/status`);
   }
 
+  async getSupportedFrameworks(): Promise<{ frameworks: string[], default: string }> {
+    try {
+      return await this.request("/workflows/frameworks");
+    } catch (error) {
+      console.warn("Failed to load frameworks, using default:", error);
+      return { frameworks: ["crewai"], default: "crewai" };
+    }
+  }
+
   // Chat endpoints
   async sendMessage(data: ChatRequest): Promise<ChatResponse> {
     return this.request("/chat", {
