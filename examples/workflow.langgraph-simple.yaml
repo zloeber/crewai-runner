@@ -1,0 +1,54 @@
+name: Simple Research Graph
+framework: langgraph
+description: A basic LangGraph workflow demonstrating node-based execution
+
+nodes:
+  - id: start
+    type: start
+    config:
+      message: "Starting research workflow"
+
+  - id: researcher
+    type: agent
+    config:
+      role: Research Analyst
+      goal: Research and gather information on specified topics
+      model: gpt-4
+      prompt: >
+        You are a skilled researcher with expertise in finding and analyzing information.
+        Research the latest developments in artificial intelligence and machine learning.
+        Focus on recent breakthroughs, practical applications, and industry trends.
+        
+        Provide a comprehensive research summary covering key developments, 
+        their implications, and potential impact on various industries.
+
+  - id: writer
+    type: agent
+    config:
+      role: Content Writer
+      goal: Create well-written content based on research findings
+      model: gpt-4
+      prompt: >
+        You are an experienced writer who can transform research findings into 
+        engaging and informative content for various audiences.
+        
+        Based on the research findings provided, write a 500-word article that 
+        explains the latest AI developments in an accessible way for a general audience.
+        
+        Create a well-structured article with an introduction, main body, and conclusion
+        that effectively communicates the research findings.
+
+  - id: end
+    type: end
+    config:
+      message: "Workflow completed successfully"
+
+edges:
+  - source: start
+    target: researcher
+  
+  - source: researcher
+    target: writer
+  
+  - source: writer
+    target: end

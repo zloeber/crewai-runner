@@ -128,13 +128,14 @@ Authorization: Bearer <API_KEY>
 
 #### Start Workflow
 - **URL**: `POST /workflows/start`
-- **Description**: Start a new workflow
+- **Description**: Start a new workflow with support for multiple frameworks
 - **Request Body**:
 ```json
 {
   "workflow": {
     "name": "string",
     "description": "string (optional)",
+    "framework": "crewai|langgraph (optional, default: crewai)",
     "agents": [
       {
         "name": "string",
@@ -158,8 +159,23 @@ Authorization: Bearer <API_KEY>
         "context": ["string"] (optional),
         "outputJson": "boolean (optional)"
       }
-    ]
+    ],
+    "nodes": [
+      {
+        "id": "string",
+        "type": "string",
+        "config": "object"
+      }
+    ] (optional, LangGraph only),
+    "edges": [
+      {
+        "source": "string",
+        "target": "string",
+        "condition": "string (optional)"
+      }
+    ] (optional, LangGraph only)
   },
+  "framework": "crewai|langgraph (optional, overrides workflow.framework)",
   "providerConfig": {
     "id": "string",
     "name": "string",
@@ -176,6 +192,17 @@ Authorization: Bearer <API_KEY>
   "workflowId": "string",
   "status": "started|running|completed|failed",
   "message": "string"
+}
+```
+
+#### Get Supported Frameworks
+- **URL**: `GET /workflows/frameworks`
+- **Description**: Get list of supported frameworks
+- **Response**:
+```json
+{
+  "frameworks": ["crewai", "langgraph"],
+  "default": "crewai"
 }
 ```
 
@@ -241,8 +268,10 @@ Authorization: Bearer <API_KEY>
 ### YAML
 
 #### Validate YAML
-- **URL**: `POST /yaml/validate`
-- **Description**: Validate a YAML workflow definition
+- **URL**: `POST /yaml/validate?framework=crewai|langgraph`
+- **Description**: Validate a YAML workflow definition against a specific framework
+- **Query Parameters**:
+  - `framework` (optional): Framework to validate against (default: "crewai")
 - **Request Body**:
 ```json
 {
@@ -257,6 +286,7 @@ Authorization: Bearer <API_KEY>
   "workflow": {
     "name": "string",
     "description": "string (optional)",
+    "framework": "crewai|langgraph",
     "agents": [
       {
         "name": "string",
