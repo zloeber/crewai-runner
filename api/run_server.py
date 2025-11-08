@@ -16,10 +16,10 @@ os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Import the app directly without going through __init__.py
     from engine.main import app
-    
+
     print("Starting CrewAI API server for testing...")
     print("API will be available at: http://localhost:8000")
     print("API docs will be available at: http://localhost:8000/api/docs")
@@ -31,11 +31,11 @@ if __name__ == "__main__":
     print("- DELETE /api/profiles/{name} - Delete a profile")
     print("- GET /api/profiles/{name}/export - Export profile as YAML")
     print("- POST /api/profiles/import - Import profile from YAML")
-    
+
     uvicorn.run(
         app,
         host="0.0.0.0",
         port=8000,
         reload=False,  # Disable reload to avoid import issues
-        log_level="info"
+        log_level="info",
     )

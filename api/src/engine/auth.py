@@ -8,7 +8,7 @@ security = HTTPBearer()
 
 
 async def verify_api_key(
-    credentials: HTTPAuthorizationCredentials = Security(security)
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> str:
     """Verify the API key from the Authorization header."""
     if credentials.credentials != settings.api_key:

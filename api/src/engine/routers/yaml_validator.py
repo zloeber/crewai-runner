@@ -20,14 +20,14 @@ async def validate_yaml(
     """Validate a YAML workflow definition."""
     errors = []
     workflow = None
-    
+
     try:
         # Parse YAML
         yaml_data = yaml.safe_load(request.yamlContent)
-        
+
         # Try to validate against Workflow model
         workflow = Workflow(**yaml_data)
-        
+
         return ValidateYAMLResponse(
             valid=True,
             workflow=workflow,
@@ -36,7 +36,7 @@ async def validate_yaml(
         errors.append(f"YAML parsing error: {str(e)}")
     except Exception as e:
         errors.append(f"Validation error: {str(e)}")
-    
+
     return ValidateYAMLResponse(
         valid=False,
         errors=errors,

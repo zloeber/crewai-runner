@@ -1,6 +1,6 @@
 """Chat endpoints for workflow interaction."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from datetime import datetime
 
 from models import SendMessageRequest, SendMessageResponse
@@ -16,7 +16,7 @@ async def send_message(
     """Send a message to a running workflow."""
     # TODO: Integrate with CrewAI to send messages to workflows
     # For now, return a mock response
-    
+
     return SendMessageResponse(
         workflowId=request.workflowId,
         response=f"Received message: {request.message}",

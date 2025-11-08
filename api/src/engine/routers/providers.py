@@ -30,16 +30,16 @@ async def add_provider(
 ):
     """Add a new provider."""
     provider = request.provider
-    
+
     # Generate ID if not provided
     if not provider.id:
         provider.id = str(uuid.uuid4())
-    
+
     # Check if provider already exists
     if provider.id in providers_db:
         raise HTTPException(status_code=400, detail="Provider already exists")
-    
+
     # Store provider
     providers_db[provider.id] = provider
-    
+
     return AddProviderResponse(provider=provider)

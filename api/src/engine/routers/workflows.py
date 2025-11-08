@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
 import uuid
-import asyncio
 
 from models import (
     StartWorkflowRequest,
@@ -27,7 +26,7 @@ async def start_workflow(
 ):
     """Start a new workflow."""
     workflow_id = str(uuid.uuid4())
-    
+
     # Store workflow information
     workflows_db[workflow_id] = {
         "workflow": request.workflow,
@@ -40,10 +39,10 @@ async def start_workflow(
         "currentTask": None,
         "progress": 0,
     }
-    
+
     # TODO: Integrate with CrewAI to actually start the workflow
     # For now, just return a success response
-    
+
     return StartWorkflowResponse(
         workflowId=workflow_id,
         status="started",
@@ -57,15 +56,15 @@ async def stop_workflow(
 ):
     """Stop a running workflow."""
     workflow_id = request.workflowId
-    
+
     if workflow_id not in workflows_db:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    
+
     # Update workflow status
     workflows_db[workflow_id]["status"] = "stopped"
-    
+
     # TODO: Integrate with CrewAI to actually stop the workflow
-    
+
     return StopWorkflowResponse(
         workflowId=workflow_id,
         status="stopped",
@@ -74,15 +73,13 @@ async def stop_workflow(
 
 
 @router.get("/{workflowId}/status", response_model=WorkflowStatusResponse)
-async def get_workflow_status(
-    workflowId: str, api_key: str = Depends(verify_api_key)
-):
+async def get_workflow_status(workflowId: str, api_key: str = Depends(verify_api_key)):
     """Get the status of a workflow."""
     if workflowId not in workflows_db:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    
+
     workflow_data = workflows_db[workflowId]
-    
+
     return WorkflowStatusResponse(
         workflowId=workflowId,
         status=workflow_data["status"],

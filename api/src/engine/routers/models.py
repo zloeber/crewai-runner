@@ -25,21 +25,19 @@ async def list_models(api_key: str = Depends(verify_api_key)):
 
 
 @router.post("", response_model=AddModelResponse)
-async def add_model(
-    request: AddModelRequest, api_key: str = Depends(verify_api_key)
-):
+async def add_model(request: AddModelRequest, api_key: str = Depends(verify_api_key)):
     """Add a new model."""
     model = request.model
-    
+
     # Generate ID if not provided
     if not model.id:
         model.id = str(uuid.uuid4())
-    
+
     # Check if model already exists
     if model.id in models_db:
         raise HTTPException(status_code=400, detail="Model already exists")
-    
+
     # Store model
     models_db[model.id] = model
-    
+
     return AddModelResponse(model=model)

@@ -1,4 +1,4 @@
-name: Test
+name: Test API
 run-name: Test - ${{ github.ref_name }}
 on: [push, pull_request]
 
@@ -7,7 +7,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PROJECT_PATH: src/terraform_ingest
+  PROJECT_PATH: api/src/engine
 
 permissions:
   contents: read
@@ -32,20 +32,24 @@ jobs:
 
       - name: Set up environment
         run: |
+          cd api
           pip install uv
           uv venv
           uv pip install -e ".[test]"
 
       - name: Unit Tests
         run: |
+          cd api
           uv run pytest --maxfail=1 --disable-warnings -v tests
 
       - name: Linting
         if: matrix.os != 'windows-latest'
         run: |
+          cd api
           uv run black --check ${{ env.PROJECT_PATH }}
           uv run ruff format --check ${{ env.PROJECT_PATH }}
       - name: Build Check
         run: |
+          cd api
           uv sync
           uv build
