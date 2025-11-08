@@ -5,9 +5,9 @@ import os
 import sys
 from pathlib import Path
 
-# Add the src directory to Python path
-src_path = Path(__file__).parent / "src"
-sys.path.insert(0, str(src_path))
+# Add the src/engine directory to Python path
+engine_path = Path(__file__).parent / "src" / "engine"
+sys.path.insert(0, str(engine_path))
 
 # Set environment variables for testing
 os.environ.setdefault("CREWAI_API_KEY", "test-api-key")
@@ -17,8 +17,8 @@ os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
 if __name__ == "__main__":
     import uvicorn
 
-    # Import the app directly without going through __init__.py
-    from engine.main import app
+    # Import the app
+    from main import app
 
     print("Starting CrewAI API server for testing...")
     print("API will be available at: http://localhost:8000")
@@ -31,6 +31,10 @@ if __name__ == "__main__":
     print("- DELETE /api/profiles/{name} - Delete a profile")
     print("- GET /api/profiles/{name}/export - Export profile as YAML")
     print("- POST /api/profiles/import - Import profile from YAML")
+    print("\nMCP endpoints:")
+    print("- GET /api/mcp/servers - List all MCP servers")
+    print("- POST /api/mcp/servers - Register new MCP server")
+    print("- GET /api/mcp/tools - List all tools from all servers")
 
     uvicorn.run(
         app,

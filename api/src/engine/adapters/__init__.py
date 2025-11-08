@@ -1,6 +1,6 @@
 """Adapters module for framework-specific implementations."""
 
-from .crewai_adapter import CrewAIAdapter
-from .langgraph_adapter import LangGraphAdapter
+from adapters.crewai_adapter import CrewAIAdapter
+from adapters.langgraph_adapter import LangGraphAdapter
 
 __all__ = ["CrewAIAdapter", "LangGraphAdapter"]

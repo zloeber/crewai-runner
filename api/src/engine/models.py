@@ -273,3 +273,121 @@ class ImportProfileRequest(BaseModel):
 class ImportProfileResponse(BaseModel):
     name: str
     message: str
+
+
+# MCP Server Management Models
+class MCPServer(BaseModel):
+    """MCP Server with runtime state."""
+    id: str
+    name: str
+    description: Optional[str] = None
+    transport: MCPTransport
+    env: Optional[Dict[str, str]] = {}
+    tools: List[str] = []
+    enabled: bool = True
+    status: Literal["connected", "disconnected", "error"] = "disconnected"
+    error_message: Optional[str] = None
+
+
+class MCPServerListResponse(BaseModel):
+    servers: List[MCPServer]
+
+
+class AddMCPServerRequest(BaseModel):
+    server: MCPServerConfig
+
+
+class AddMCPServerResponse(BaseModel):
+    server: MCPServer
+
+
+class UpdateMCPServerRequest(BaseModel):
+    server: MCPServerConfig
+
+
+class UpdateMCPServerResponse(BaseModel):
+    server: MCPServer
+
+
+class DeleteMCPServerResponse(BaseModel):
+    id: str
+    message: str
+
+
+class MCPConnectionStatus(BaseModel):
+    status: Literal["connected", "disconnected", "error"]
+    message: str
+    latency_ms: Optional[float] = None
+    transport_type: str
+    initialization_success: bool
+
+
+class TestMCPConnectionResponse(BaseModel):
+    server_id: str
+    connection_status: MCPConnectionStatus
+
+
+class MCPToolSchema(BaseModel):
+    """Schema definition for an MCP tool."""
+    name: str
+    description: Optional[str] = None
+    input_schema: Dict[str, Any]
+    output_schema: Optional[Dict[str, Any]] = None
+
+
+class MCPTool(BaseModel):
+    """MCP Tool with metadata."""
+    id: str
+    server_id: str
+    server_name: str
+    name: str
+    description: Optional[str] = None
+    input_schema: Dict[str, Any]
+    output_schema: Optional[Dict[str, Any]] = None
+
+
+class MCPToolListResponse(BaseModel):
+    tools: List[MCPTool]
+
+
+class MCPToolTestRequest(BaseModel):
+    server_id: str
+    tool_name: str
+    parameters: Dict[str, Any]
+
+
+class MCPToolTestResponse(BaseModel):
+    tool_name: str
+    success: bool
+    result: Optional[Any] = None
+    error: Optional[str] = None
+    execution_time_ms: float
+    request: Dict[str, Any]
+    response: Dict[str, Any]
+
+
+class ImportMCPConfigRequest(BaseModel):
+    """Import MCP servers from Claude Desktop or other config formats."""
+    config_content: str  # JSON content
+    config_format: Literal["claude_desktop", "cline", "custom"] = "claude_desktop"
+
+
+class ImportMCPConfigResponse(BaseModel):
+    imported_count: int
+    servers: List[MCPServer]
+    message: str
+
+
+class ExportMCPConfigResponse(BaseModel):
+    config_content: str
+    format: str
+
+
+class ExportToolRequest(BaseModel):
+    framework: Literal["crewai", "langgraph", "yaml"]
+
+
+class ExportToolResponse(BaseModel):
+    tool_definition: str
+    framework: str
+    instructions: Optional[str] = None

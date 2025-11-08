@@ -1,7 +1,7 @@
 """CrewAI adapter implementation."""
 
 from typing import Any, Dict, AsyncIterator, Optional, List
-from ..abstractions.base_orchestrator import BaseOrchestrator
+from abstractions.base_orchestrator import BaseOrchestrator
 import uuid
 
 
