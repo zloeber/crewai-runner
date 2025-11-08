@@ -20,47 +20,52 @@ mcpServers:
     description: Web search and content retrieval
     transport:
       type: stdio
-      command: "uvx"
-      args: ["mcp-server-searxng"]
+      command: "npx"
+      args: ["-y", "mcp-searxng"]
     env:
-      SEARXNG_BASE_URL: "https://search.inetol.net"
+      SEARXNG_URL: "http://localhost:8080"
     tools:
-      - mcp_searxng_searxng_web_search
-      - mcp_searxng_web_url_read
-    
+      - searxng_web_search
+      - web_url_read
+
   - name: context7
     description: Library documentation and code examples
     transport:
-      type: stdio
-      command: "npx"
-      args: ["-y", "@context7/mcp-server"]
+      type: http
+      url: https://mcp.context7.com/mcp
     tools:
-      - mcp_context7_resolve-library-id
-      - mcp_context7_get-library-docs
+      - resolve-library-id
+      - get-library-docs
     
   - name: sequential-thinking
     description: Sequential reasoning and analysis
     transport:
       type: stdio
       command: "npx"
-      args: ["-y", "@dyad-ai/mcp-sequential-thinking"]
+      args: ["-y",  "@modelcontextprotocol/server-sequential-thinking"]
     tools:
-      - mcp_sequential-th_sequentialthinking
-    
-  - name: filesy
+      - sequentialthinking
+
+  - name: file-system
     description: File system operations
     transport:
       type: stdio
       command: "npx"
-      args: ["-y", "@dyad-ai/mcp-server-filesy"]
+      args: ["-y", "@modelcontextprotocol/server-filesystem"]
     env:
       ALLOWED_DIRECTORIES: "/tmp,/Users/zacharyloeber/Documents"
     tools:
-      - mcp_server-filesy_create_directory
-      - mcp_server-filesy_write_file
-      - mcp_server-filesy_read_text_file
-      - mcp_server-filesy_list_directory
-      - mcp_server-filesy_search_files
+      - read_file
+      - write_file
+      - edit_file
+      - create_directory
+      - list_directory
+      - list_directory_with_sizes
+      - directory_tree
+      - move_file
+      - search_files
+      - get_file_info
+      - list_allowed_directories
 
 # Model Provider Configurations
 providers:
@@ -113,20 +118,20 @@ modelOverrides:
 # Common tool combinations that can be applied to agent roles
 defaultToolSets:
   researcher:
-    - mcp_searxng_searxng_web_search
-    - mcp_searxng_web_url_read
-    - mcp_context7_resolve-library-id
-    - mcp_context7_get-library-docs
-  
+    - searxng_web_search
+    - web_url_read
+    - resolve-library-id
+    - get-library-docs
+
   writer:
-    - mcp_server-filesy_create_directory
-    - mcp_server-filesy_write_file
-    - mcp_sequential-th_sequentialthinking
-  
+    - create_directory
+    - write_file
+    - sequentialthinking
+
   analyst:
-    - mcp_sequential-th_sequentialthinking
-    - mcp_context7_resolve-library-id
-    - mcp_context7_get-library-docs
+    - sequentialthinking
+    - resolve-library-id
+    - get-library-docs
 
 # Workflow Defaults
 # Default configurations applied to all workflows using this profile
