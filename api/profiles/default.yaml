@@ -1,0 +1,172 @@
+# CrewAI Profile Configuration
+# This profile defines high-level configurations that can be applied to workflows
+# including MCP server definitions, model overrides, and default settings
+
+apiVersion: crewai/v1
+kind: Profile
+metadata:
+  name: default
+  description: Default profile with common MCP servers and model configurations
+  version: "1.0.0"
+  created: "2024-11-07T00:00:00Z"
+  tags:
+    - default
+    - production
+
+# MCP Server Definitions
+# These servers will be available to all agents in workflows using this profile
+mcpServers:
+  - name: searxng
+    description: Web search and content retrieval
+    transport:
+      type: stdio
+      command: "npx"
+      args: ["-y", "mcp-searxng"]
+    env:
+      SEARXNG_URL: "http://localhost:8080"
+    tools:
+      - searxng_web_search
+      - web_url_read
+
+  - name: context7
+    description: Library documentation and code examples
+    transport:
+      type: http
+      url: https://mcp.context7.com/mcp
+    tools:
+      - resolve-library-id
+      - get-library-docs
+    
+  - name: sequential-thinking
+    description: Sequential reasoning and analysis
+    transport:
+      type: stdio
+      command: "npx"
+      args: ["-y",  "@modelcontextprotocol/server-sequential-thinking"]
+    tools:
+      - sequentialthinking
+
+  - name: file-system
+    description: File system operations
+    transport:
+      type: stdio
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-filesystem"]
+    env:
+      ALLOWED_DIRECTORIES: "/tmp,/Users/zacharyloeber/Documents"
+    tools:
+      - read_file
+      - write_file
+      - edit_file
+      - create_directory
+      - list_directory
+      - list_directory_with_sizes
+      - directory_tree
+      - move_file
+      - search_files
+      - get_file_info
+      - list_allowed_directories
+
+# Model Provider Configurations
+providers:
+  - name: openai
+    type: openai
+    apiKey: "${OPENAI_API_KEY}"
+    models:
+      - name: gpt-4o
+        type: llm
+        providerId: openai
+        endpoint: "gpt-4o"
+        default: true
+      - name: gpt-4o-mini
+        type: llm
+        providerId: openai
+        endpoint: "gpt-4o-mini"
+        default: false
+      - name: text-embedding-3-large
+        type: embedder
+        providerId: openai
+        endpoint: "text-embedding-3-large"
+        default: true
+  
+  - name: anthropic
+    type: anthropic
+    apiKey: "${ANTHROPIC_API_KEY}"
+    models:
+      - name: claude-3-5-sonnet-20241022
+        type: llm
+        providerId: anthropic
+        endpoint: "claude-3-5-sonnet-20241022"
+        default: false
+
+# Model Override Rules
+# These rules allow you to override agent models based on role patterns or specific agents
+modelOverrides:
+  - pattern: "*researcher*"
+    model: gpt-4o
+    reason: "Research agents benefit from GPT-4's web search capabilities"
+  
+  - pattern: "*writer*"
+    model: claude-3-5-sonnet-20241022
+    reason: "Claude excels at creative and technical writing"
+  
+  - agentName: "fact_checker"
+    model: gpt-4o
+    reason: "Fact checking requires access to current information"
+
+# Default Tool Sets
+# Common tool combinations that can be applied to agent roles
+defaultToolSets:
+  researcher:
+    - searxng_web_search
+    - web_url_read
+    - resolve-library-id
+    - get-library-docs
+
+  writer:
+    - create_directory
+    - write_file
+    - sequentialthinking
+
+  analyst:
+    - sequentialthinking
+    - resolve-library-id
+    - get-library-docs
+
+# Workflow Defaults
+# Default configurations applied to all workflows using this profile
+workflowDefaults:
+  verbose: true
+  allowDelegation: false
+  maxConcurrentTasks: 3
+  timeoutMinutes: 30
+  
+  # Default agent settings
+  agentDefaults:
+    verbose: true
+    allowDelegation: false
+    
+  # Default task settings  
+  taskDefaults:
+    asyncExecution: false
+    outputJson: false
+
+# Environment Variables
+# Variables that should be available to MCP servers and agents
+environment:
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+  SEARXNG_BASE_URL: "https://search.inetol.net"
+  
+# Security Settings
+security:
+  allowedDomains:
+    - "*.openai.com"
+    - "*.anthropic.com" 
+    - "search.inetol.net"
+  
+  restrictedTools: []
+  
+  rateLimits:
+    requestsPerMinute: 60
+    tokensPerMinute: 100000

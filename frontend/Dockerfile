@@ -3,6 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Accept build arguments for environment configuration
+ARG VITE_CREWAI_RUNNER_API_HOST=http://localhost:8000/api
+ARG VITE_CREWAI_API_TOKEN=""
+
+# Set environment variables for build
+ENV VITE_CREWAI_RUNNER_API_HOST=${VITE_CREWAI_RUNNER_API_HOST}
+ENV VITE_CREWAI_API_TOKEN=${VITE_CREWAI_API_TOKEN}
+
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 

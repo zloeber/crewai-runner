@@ -1,10 +1,10 @@
 # Instructions for crewai-runner
 
-## Project Overview
+## Project Paths
 
-`./frontend` - A NodeJS/React/Vite frontend
-`./backend` - FastMCP/FastAPI/Click-based Python wrapper to CrewAI.
-`./API_SCHEMA.md` - API endpoints and configuration requirements
+`./frontend` - A NodeJS/React/Vite frontend. Read `./frontend/AGENTS.md` for frontend development guidelines.
+`./api` - FastMCP/FastAPI/Click-based Python wrapper to CrewAI. Read `./api/AGENTS.md` for backend development guidelines.
+`./API_SCHEMA.md` - API endpoints and configuration requirements for both frontend and backend.
 
 ## Rules
 - Before running any command, check the current terminal context and use that same terminal ID for all subsequent commands.
@@ -35,35 +35,6 @@ uv sync                    # Install dependencies (uses uv, not pip)
 python -m pytest          # Run tests
 python -m terraform_ingest.cli --help  # CLI access
 ```
-
-### CLI Commands
-```bash
-# Single repo analysis
-terraform-ingest analyze https://github.com/user/terraform-module --recursive
-
-# Batch processing from config
-terraform-ingest ingest config.yaml --cleanup
-
-# Start MCP service for AI agents
-terraform-ingest-mcp
-```
-
-## Critical Implementation Details
-
-### Recursive Module Discovery
-- `RepositoryManager._find_module_paths()` walks directories when `recursive=true`
-- Each discovered module gets separate JSON output: `{repo}_{ref}_{module_path}.json`
-
-### File Naming Convention
-- Output: `{repository_name}_{ref}_{path}.json` (path omitted for root modules)
-- Paths sanitized: `/` → `_`, handles Windows paths
-
-### MCP Integration
-- FastMCP service reads from `output_dir` (default: `./output`)
-- Exposes multiple tools and prompts
-- Exposes dynamic resource urls
-- JSON files must follow `TerraformModuleSummary` schema
-
 ## Testing Patterns
 - Pydantic model validation in `test_models.py`  
 - Use `pytest` fixtures for sample configurations
@@ -74,16 +45,16 @@ terraform-ingest-mcp
 ## Linting & Formatting
 ```bash
 # Check formatting (required before commit)
-uv run black --check src/terraform_ingest
-uv run ruff format --check src/terraform_ingest
+uv run black --check src/
+uv run ruff format --check src/
 
 # Auto-fix formatting (required before commit)
-uv run black src/terraform_ingest
-uv run ruff format src/terraform_ingest
+uv run black src/
+uv run ruff format src/
 
 # Linting with ruff (required before commit)
-uv run ruff check src/terraform_ingest
-uv run ruff check --fix src/terraform_ingest
+uv run ruff check src/
+uv run ruff check --fix src/
 ```
 
 ## Build & Distribution
@@ -123,34 +94,6 @@ uv remove <package-name>
 2. Run tests to ensure compatibility
 3. Commit both `pyproject.toml` and `uv.lock` files
 
-## Environment Variables
-- `TERRAFORM_INGEST_OUTPUT_DIR`: Default output directory for JSON summaries (default: `./output`)
-- Git credentials automatically detected from system for private repositories
-- No required environment variables for basic operation
-
-## Project Structure
-```
-.
-├── .github/
-│   ├── copilot-instructions.md    # Copilot guidance
-│   └── workflows/                 # CI/CD pipelines
-├── docs/                          # Documentation files
-├── examples/                      # Example configurations
-├── src/terraform_ingest/
-│   ├── __init__.py
-│   ├── api.py                    # FastAPI server
-│   ├── cli.py                    # Click CLI interface
-│   ├── ingest.py                 # Main ingestion logic
-│   ├── mcp_service.py            # MCP server for AI agents
-│   ├── models.py                 # Pydantic data models
-│   ├── parser.py                 # Terraform file parser
-│   └── repository.py             # Git repository manager
-├── tests/                        # Test suite
-├── config.yaml                   # Example configuration
-├── pyproject.toml               # Project metadata & dependencies
-└── Taskfile.yml                 # Task automation
-```
-
 ## Common Tasks
 ```bash
 # Run all tests
@@ -180,7 +123,6 @@ task install
 - **Git authentication**: Ensure SSH keys or credential helpers are configured
 - **Test failures**: Check if git is available on PATH for repository tests
 - **Module not found**: Verify you're running commands from project root with activated venv
-- **MCP server issues**: Check `TERRAFORM_INGEST_OUTPUT_DIR` points to valid directory with JSON files
 
 ## Git Workflow
 - Branch naming: `feature/description`, `fix/description`, `docs/description`

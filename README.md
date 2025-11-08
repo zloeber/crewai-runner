@@ -66,6 +66,9 @@ crewai-runner/
 - 🎨 Modern React UI with TypeScript
 - 📱 Responsive design with TailwindCSS
 - 🔧 Built with Vite for fast development
+- ⚙️ **Configuration Menu** - Runtime endpoint and authentication management
+- 🔌 **Connection Monitoring** - Real-time API connectivity status
+- 🔐 **Dynamic Authentication** - Bearer token management with localStorage persistence
 
 ## 🔌 API Endpoints
 
@@ -204,6 +207,34 @@ API_HOST=0.0.0.0
 API_PORT=8000
 API_RELOAD=false
 ```
+
+### Frontend
+
+```env
+CREWAI_RUNNER_API_HOST=http://localhost:8000/api
+CREWAI_API_TOKEN=your-api-token-here
+```
+
+The frontend supports the following configuration:
+
+- **`CREWAI_RUNNER_API_HOST`**: The API endpoint to connect to. This allows you to:
+  - Point the frontend to a different backend server
+  - Configure different API URLs for development vs production
+  - Deploy the frontend separately from the backend
+
+- **`CREWAI_API_TOKEN`** (Optional): Bearer token for API authentication. Can be set:
+  - As an environment variable during build time
+  - Via the Configuration Menu at runtime (stored in localStorage)
+  - Left blank if your API doesn't require authentication
+
+**Configuration Menu Features:**
+The frontend includes a comprehensive configuration interface that allows runtime management of:
+- 🔗 **API Endpoint**: Change the target server URL without rebuilding
+- 🔐 **Authentication Token**: Set and validate Bearer tokens with real-time testing
+- 📊 **Connection Status**: Live monitoring with latency metrics and error reporting
+- 💾 **Persistent Storage**: Settings are saved to localStorage and persist across sessions
+
+For Docker deployments, set these in your `.env` file and the build process will use them automatically.
 
 See [api/.env.example](./api/.env.example) for more details.
 
