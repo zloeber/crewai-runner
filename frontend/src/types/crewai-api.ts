@@ -23,6 +23,23 @@ export interface WorkflowConfig {
   description?: string;
   agents: AgentConfig[];
   tasks: TaskConfig[];
+  framework?: string;  // Added framework field
+  // LangGraph-specific fields
+  nodes?: NodeConfig[];
+  edges?: EdgeConfig[];
+}
+
+// LangGraph-specific types
+export interface NodeConfig {
+  id: string;
+  type: string;
+  config: Record<string, any>;
+}
+
+export interface EdgeConfig {
+  source: string;
+  target: string;
+  condition?: string;
 }
 
 export interface AgentConfig {
@@ -57,6 +74,7 @@ export interface ChatMessage {
 export interface StartWorkflowRequest {
   workflow: WorkflowConfig;
   providerConfig?: ProviderConfig;
+  framework?: string;  // Optional framework override
 }
 
 export interface StartWorkflowResponse {

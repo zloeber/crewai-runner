@@ -1,6 +1,6 @@
 """Pydantic models for API request/response validation."""
 
-from typing import Optional, List, Literal, Dict
+from typing import Optional, List, Literal, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -74,13 +74,18 @@ class Task(BaseModel):
 class Workflow(BaseModel):
     name: str
     description: Optional[str] = None
-    agents: List[Agent]
-    tasks: List[Task]
+    agents: List[Agent] = []
+    tasks: List[Task] = []
+    framework: str = "crewai"  # Default to crewai for backward compatibility
+    # LangGraph-specific fields (optional)
+    nodes: Optional[List[Dict[str, Any]]] = None
+    edges: Optional[List[Dict[str, Any]]] = None
 
 
 class StartWorkflowRequest(BaseModel):
     workflow: Workflow
     providerConfig: Optional[Provider] = None
+    framework: Optional[str] = None  # Optional framework override
 
 
 class StartWorkflowResponse(BaseModel):

@@ -1,4 +1,5 @@
 name: AI News Blog Crew
+framework: crewai
 description: Multi-agent workflow for discovering recent AI and IT news and creating compelling technical blog posts using MCP servers
 
 agents:

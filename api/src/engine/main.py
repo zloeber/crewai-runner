@@ -7,16 +7,22 @@ from fastapi.responses import JSONResponse
 from config import settings
 from models import ErrorResponse
 from routers import providers, models, workflows, chat, yaml_validator, profiles
+from services.orchestrator_factory import OrchestratorFactory
+from adapters import CrewAIAdapter, LangGraphAdapter
 
 # Create FastAPI app
 app = FastAPI(
     title="CrewAI Workflow Interface API",
-    description="API for managing CrewAI workflows, agents, and tasks",
+    description="API for managing CrewAI workflows, agents, and tasks with multi-framework support",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
 )
+
+# Register orchestrators
+OrchestratorFactory.register("crewai", CrewAIAdapter)
+OrchestratorFactory.register("langgraph", LangGraphAdapter)
 
 # Configure CORS
 app.add_middleware(

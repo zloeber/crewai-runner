@@ -1,0 +1,50 @@
+name: Simple Research Crew
+framework: crewai
+description: A basic CrewAI workflow demonstrating agent collaboration
+
+agents:
+  - name: researcher
+    role: Research Analyst
+    goal: Research and gather information on specified topics
+    backstory: >
+      You are a skilled researcher with expertise in finding and analyzing information.
+      You have access to web search tools and can synthesize information from multiple sources.
+    model: gpt-4
+    tools: []
+    allowDelegation: false
+    verbose: true
+
+  - name: writer
+    role: Content Writer
+    goal: Create well-written content based on research findings
+    backstory: >
+      You are an experienced writer who can transform research findings into 
+      engaging and informative content for various audiences.
+    model: gpt-4
+    tools: []
+    allowDelegation: false
+    verbose: true
+
+tasks:
+  - name: research_task
+    description: >
+      Research the latest developments in artificial intelligence and machine learning.
+      Focus on recent breakthroughs, practical applications, and industry trends.
+    expected_output: >
+      A comprehensive research summary covering key developments, their implications,
+      and potential impact on various industries.
+    agent: researcher
+    asyncExecution: false
+    outputJson: false
+
+  - name: writing_task
+    description: >
+      Based on the research findings, write a 500-word article that explains
+      the latest AI developments in an accessible way for a general audience.
+    expected_output: >
+      A well-structured article with an introduction, main body, and conclusion
+      that effectively communicates the research findings.
+    agent: writer
+    context: ["research_task"]
+    asyncExecution: false
+    outputJson: false
