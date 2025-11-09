@@ -1,9 +1,43 @@
+"""CrewAI Runner API Package."""
+
 import os
 import pathlib
+import click
+
+# from .main import run_server
+from .cli import config
 
 # from main import app
 
 # __all__ = ["app"]
+
+
+@click.group()
+def main():
+    """CrewAI Runner API - A FastAPI wrapper for CrewAI with configuration management."""
+    pass
+
+
+@main.command()
+@click.option("--host", default="0.0.0.0", help="Host to bind to")
+@click.option("--port", default=8000, help="Port to bind to")
+@click.option("--reload", is_flag=True, help="Enable auto-reload")
+def serve(host, port, reload):
+    """Start the API server."""
+    import uvicorn
+    from .config import settings
+
+    # Override settings if provided
+    settings.host = host
+    settings.port = port
+    settings.reload = reload
+
+    uvicorn.run("src.engine.main:app", host=host, port=port, reload=reload)
+
+
+# Add the config subcommand
+main.add_command(config)
+
 
 """
 Compute the version number and store it in the `__version__` variable.

@@ -1,12 +1,9 @@
 """MCP Server Management API endpoints."""
 
 from fastapi import APIRouter, HTTPException, status
-from typing import Optional
 
 from models import (
-    MCPServer,
     MCPServerListResponse,
-    MCPServerConfig,
     AddMCPServerRequest,
     AddMCPServerResponse,
     UpdateMCPServerRequest,
@@ -200,9 +197,7 @@ async def import_mcp_config(request: ImportMCPConfigRequest):
             message=f"Successfully imported {len(servers)} server(s)",
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -277,7 +272,7 @@ def _export_crewai_tool(tool) -> str:
 {tool.name} = Tool(
     name="{tool.name}",
     description=\"\"\"
-{tool.description or 'No description available'}
+{tool.description or "No description available"}
     \"\"\",
     func=lambda **kwargs: call_mcp_tool(
         server_id="{tool.server_id}",
@@ -301,7 +296,7 @@ def _export_langgraph_tool(tool) -> str:
 
 {tool.name}_tool = StructuredTool.from_function(
     name="{tool.name}",
-    description="{tool.description or 'No description available'}",
+    description="{tool.description or "No description available"}",
     func=lambda **kwargs: call_mcp_tool(
         server_id="{tool.server_id}",
         tool_name="{tool.name}",
@@ -320,7 +315,7 @@ def _export_yaml_tool(tool) -> str:
     return f"""# Tool: {tool.name}
 name: {tool.name}
 server: {tool.server_name}
-description: {tool.description or 'No description available'}
+description: {tool.description or "No description available"}
 input_schema:
   type: object
   properties: {{}}

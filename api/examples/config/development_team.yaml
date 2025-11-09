@@ -1,0 +1,63 @@
+name: "development_team"
+description: "A team for software development tasks including analysis, coding, and testing"
+process: "sequential"
+verbose: true
+
+agents:
+  - name: "analyst"
+    role: "Business Analyst"
+    goal: "Analyze requirements and create detailed specifications"
+    backstory: "You are an experienced business analyst with a strong background in software requirements gathering and system design. You excel at breaking down complex business problems into clear, actionable requirements."
+    tools: ["documentation", "research"]
+    llm_config: null
+    max_iter: 3
+    verbose: true
+    allow_delegation: false
+  
+  - name: "developer"
+    role: "Senior Software Developer"
+    goal: "Implement solutions based on specifications"
+    backstory: "You are a senior software developer with extensive experience in multiple programming languages and frameworks. You write clean, efficient, and maintainable code while following best practices."
+    tools: ["code_editor", "git", "testing_framework"]
+    llm_config: null
+    max_iter: 5
+    verbose: true
+    allow_delegation: false
+    
+  - name: "tester"
+    role: "Quality Assurance Engineer"
+    goal: "Test and validate implemented solutions"
+    backstory: "You are a meticulous QA engineer with expertise in both manual and automated testing. You ensure that software meets requirements and maintains high quality standards."
+    tools: ["testing_framework", "bug_tracker"]
+    llm_config: null
+    max_iter: 4
+    verbose: true
+    allow_delegation: false
+
+tasks:
+  - name: "requirements_analysis"
+    description: "Analyze the project requirements and create detailed specifications"
+    agent: "analyst"
+    expected_output: "Detailed requirements document with specifications, user stories, and acceptance criteria"
+    tools: ["documentation", "research"]
+    async_execution: false
+    context: []
+    output_json: false
+  
+  - name: "implementation"
+    description: "Implement the solution based on the analyzed requirements"
+    agent: "developer"
+    expected_output: "Working code implementation with proper documentation and comments"
+    tools: ["code_editor", "git"]
+    async_execution: false
+    context: ["requirements_analysis"]
+    output_json: false
+    
+  - name: "quality_assurance"
+    description: "Test the implemented solution for quality and compliance"
+    agent: "tester"
+    expected_output: "Test report with results, identified issues, and recommendations"
+    tools: ["testing_framework", "bug_tracker"]
+    async_execution: false
+    context: ["implementation"]
+    output_json: false

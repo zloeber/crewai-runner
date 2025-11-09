@@ -1,0 +1,63 @@
+name: "marketing_team"
+description: "A team for marketing strategy, content creation, and campaign management"
+process: "hierarchical"
+verbose: true
+
+agents:
+  - name: "strategist"
+    role: "Marketing Strategist"
+    goal: "Develop comprehensive marketing strategies and campaigns"
+    backstory: "You are a seasoned marketing strategist with deep expertise in market analysis, consumer behavior, and campaign development. You excel at creating data-driven marketing strategies that drive results."
+    tools: ["analytics", "research", "planning"]
+    llm_config: null
+    max_iter: 4
+    verbose: true
+    allow_delegation: true
+  
+  - name: "content_creator"
+    role: "Content Marketing Specialist"
+    goal: "Create compelling marketing content across various channels"
+    backstory: "You are a creative content marketing specialist with expertise in crafting engaging content for different platforms and audiences. You understand how to tailor messages for maximum impact."
+    tools: ["content_editor", "design_tools", "social_media"]
+    llm_config: null
+    max_iter: 3
+    verbose: true
+    allow_delegation: false
+    
+  - name: "campaign_manager"
+    role: "Campaign Manager"
+    goal: "Execute and optimize marketing campaigns"
+    backstory: "You are an experienced campaign manager with a proven track record of executing successful marketing campaigns across multiple channels. You excel at project management and performance optimization."
+    tools: ["campaign_tools", "analytics", "automation"]
+    llm_config: null
+    max_iter: 5
+    verbose: true
+    allow_delegation: false
+
+tasks:
+  - name: "strategy_development"
+    description: "Develop a comprehensive marketing strategy for the given objective"
+    agent: "strategist"
+    expected_output: "Detailed marketing strategy document with target audience analysis, positioning, and campaign recommendations"
+    tools: ["analytics", "research", "planning"]
+    async_execution: false
+    context: []
+    output_json: false
+  
+  - name: "content_creation"
+    description: "Create marketing content based on the developed strategy"
+    agent: "content_creator"
+    expected_output: "Complete content package including copy, visuals, and channel-specific adaptations"
+    tools: ["content_editor", "design_tools"]
+    async_execution: false
+    context: ["strategy_development"]
+    output_json: false
+    
+  - name: "campaign_execution"
+    description: "Execute the marketing campaign using the created content"
+    agent: "campaign_manager"
+    expected_output: "Campaign execution plan with timeline, performance metrics, and optimization recommendations"
+    tools: ["campaign_tools", "analytics", "automation"]
+    async_execution: false
+    context: ["strategy_development", "content_creation"]
+    output_json: false

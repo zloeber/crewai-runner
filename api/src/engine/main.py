@@ -4,11 +4,20 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from config import settings
-from models import ErrorResponse
-from routers import providers, models, workflows, chat, yaml_validator, profiles, mcp
-from services.orchestrator_factory import OrchestratorFactory
-from adapters import CrewAIAdapter, LangGraphAdapter
+from .config import settings
+from .models import ErrorResponse
+from .routers import (
+    providers,
+    models,
+    workflows,
+    chat,
+    yaml_validator,
+    profiles,
+    mcp,
+    config,
+)
+from .services.orchestrator_factory import OrchestratorFactory
+from .adapters import CrewAIAdapter, LangGraphAdapter
 
 # Create FastAPI app
 app = FastAPI(
@@ -41,6 +50,7 @@ app.include_router(chat.router, prefix=settings.api_base_url)
 app.include_router(yaml_validator.router, prefix=settings.api_base_url)
 app.include_router(profiles.router, prefix=settings.api_base_url)
 app.include_router(mcp.router, prefix=settings.api_base_url)
+app.include_router(config.router, prefix=settings.api_base_url)
 
 
 # Exception handlers

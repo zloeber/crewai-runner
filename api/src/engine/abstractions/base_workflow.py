@@ -43,7 +43,7 @@ class BaseWorkflow(ABC):
     def validate(self) -> tuple[bool, List[str]]:
         """
         Validate the workflow configuration.
-        
+
         Returns:
             Tuple of (is_valid, error_messages)
         """
