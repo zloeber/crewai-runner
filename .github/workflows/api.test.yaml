@@ -48,8 +48,10 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           cd ${{ env.PROJECT_PATH }}
-          uv run black --check ${{ env.PROJECT_PATH }}
-          uv run ruff format --check ${{ env.PROJECT_PATH }}
+          uv pip install -e ".[dev]"
+          uv run ruff check .
+          uv run black --check .
+
       - name: Build Check
         run: |
           cd ${{ env.PROJECT_PATH }}
