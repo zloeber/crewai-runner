@@ -1,7 +1,7 @@
 """Orchestrator factory for creating framework-specific orchestrators."""
 
 from typing import Dict, Type
-from abstractions.base_orchestrator import BaseOrchestrator
+from engine.abstractions.base_orchestrator import BaseOrchestrator
 
 
 class OrchestratorFactory:

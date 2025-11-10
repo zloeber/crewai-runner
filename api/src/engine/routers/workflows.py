@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
 
-from models import (
+from engine.models import (
     StartWorkflowRequest,
     StartWorkflowResponse,
     StopWorkflowRequest,
@@ -11,8 +11,8 @@ from models import (
     WorkflowStatusResponse,
     AgentStatus,
 )
-from auth import verify_api_key
-from services.orchestrator_factory import OrchestratorFactory
+from engine.auth import verify_api_key
+from engine.services.orchestrator_factory import OrchestratorFactory
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 

@@ -30,6 +30,13 @@ allow-direct-references = true
 [tool.hatch.build.hooks.vcs]
 version-file = "src/engine/_version.py"
 
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+]
+
 [project.optional-dependencies]
 standard = []
 test = ["pytest", "pytest-cov", "mypy", "ruff", "httpx", "pytest-asyncio", "black"]

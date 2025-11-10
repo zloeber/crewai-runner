@@ -39,7 +39,7 @@ class MCPServerManager:
                 id=server_id,
                 name=config.name,
                 description=config.description,
-                transport=config.transport,
+                transport=config.transport.model_dump(),
                 env=config.env or {},
                 tools=config.tools,
                 enabled=config.enabled,
@@ -67,7 +67,7 @@ class MCPServerManager:
             server = self._servers[server_id]
             server.name = config.name
             server.description = config.description
-            server.transport = config.transport
+            server.transport = MCPTransport(**config.transport.model_dump())
             server.env = config.env or {}
             server.tools = config.tools
             server.enabled = config.enabled

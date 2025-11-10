@@ -1,8 +1,8 @@
 """Tests for orchestrator factory and adapters."""
 
 import pytest
-from src.engine.services.orchestrator_factory import OrchestratorFactory
-from src.engine.adapters import CrewAIAdapter, LangGraphAdapter
+from engine.services.orchestrator_factory import OrchestratorFactory
+from engine.adapters import CrewAIAdapter, LangGraphAdapter
 
 
 def test_factory_registration():

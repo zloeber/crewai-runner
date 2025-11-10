@@ -4,9 +4,9 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .config import settings
-from .models import ErrorResponse
-from .routers import (
+from engine.config import settings
+from engine.models import ErrorResponse
+from engine.routers import (
     providers,
     models,
     workflows,
@@ -16,8 +16,8 @@ from .routers import (
     mcp,
     config,
 )
-from .services.orchestrator_factory import OrchestratorFactory
-from .adapters import CrewAIAdapter, LangGraphAdapter
+from engine.services.orchestrator_factory import OrchestratorFactory
+from engine.adapters import CrewAIAdapter, LangGraphAdapter
 
 # Create FastAPI app
 app = FastAPI(

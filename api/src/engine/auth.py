@@ -2,7 +2,7 @@
 
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from config import settings
+from engine.config import settings
 
 security = HTTPBearer()
 

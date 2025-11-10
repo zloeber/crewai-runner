@@ -92,6 +92,10 @@ class LangGraphAdapter(BaseOrchestrator):
                 n.get("id") for n in workflow.get("nodes", []) if isinstance(n, dict)
             ]
 
+            # Add special LangGraph nodes that don't need to be explicitly defined
+            special_nodes = ["START", "END", "__start__", "__end__"]
+            valid_node_ids = set(node_ids + special_nodes)
+
             for i, edge in enumerate(workflow["edges"]):
                 if not isinstance(edge, dict):
                     errors.append(f"Edge {i} must be a dictionary")
@@ -103,11 +107,11 @@ class LangGraphAdapter(BaseOrchestrator):
                         errors.append(f"Edge {i} missing required field: {field}")
 
                 # Validate node references
-                if "source" in edge and edge["source"] not in node_ids:
+                if "source" in edge and edge["source"] not in valid_node_ids:
                     errors.append(
                         f"Edge {i} references unknown source node: {edge['source']}"
                     )
-                if "target" in edge and edge["target"] not in node_ids:
+                if "target" in edge and edge["target"] not in valid_node_ids:
                     errors.append(
                         f"Edge {i} references unknown target node: {edge['target']}"
                     )

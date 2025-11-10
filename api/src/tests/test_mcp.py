@@ -1,11 +1,11 @@
 """Tests for MCP server management functionality."""
 
 import pytest
-from src.engine.models import (
+from engine.models import (
     MCPServerConfig,
     MCPTransport,
 )
-from src.engine.services.mcp_manager import MCPServerManager
+from engine.services.mcp_manager import MCPServerManager
 
 
 @pytest.fixture

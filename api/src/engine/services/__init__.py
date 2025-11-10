@@ -3,7 +3,7 @@
 # Import without relative imports to avoid issues
 import sys
 from pathlib import Path
-from services.orchestrator_factory import OrchestratorFactory
+from engine.services.orchestrator_factory import OrchestratorFactory
 
 # Ensure abstractions are importable
 engine_path = Path(__file__).parent.parent

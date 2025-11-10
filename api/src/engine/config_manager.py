@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, List
 import yaml
 import click
-from .models import RunnerConfig, CrewConfig, AgentConfig
+from engine.models import RunnerConfig, CrewConfig, AgentConfig
 
 
 class ConfigManager:
