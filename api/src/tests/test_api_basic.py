@@ -10,23 +10,25 @@ def test_import_main_app():
     # The API uses relative imports (from .config import settings) which don't work when
     # importing from tests. This is a codebase structure issue, not a test issue.
     # The API endpoints are now tested via HTTP requests with Bearer authentication.
-    pytest.skip("Skipping due to relative import issues in main.py - API functionality tested via HTTP requests")
+    pytest.skip(
+        "Skipping due to relative import issues in main.py - API functionality tested via HTTP requests"
+    )
 
 
 @pytest.mark.asyncio
 async def test_api_endpoints_exist(api_client, skip_if_no_server):
     """Test that our API endpoints exist and are reachable via HTTP with Bearer token."""
     # Test docs endpoints that don't require authentication
-    base_url = skip_if_no_server.replace('/api', '')
-    
+    base_url = skip_if_no_server.replace("/api", "")
+
     response = requests.get(f"{base_url}/api/docs")
     assert response.status_code == 200
-    
+
     response = requests.get(f"{base_url}/api/openapi.json")
     assert response.status_code == 200
 
 
-@pytest.mark.asyncio 
+@pytest.mark.asyncio
 async def test_workflows_get_frameworks(api_client, skip_if_no_server):
     """Test getting supported frameworks with Bearer token authentication."""
     response = api_client.get("/workflows/frameworks")
@@ -63,6 +65,8 @@ async def test_config_get_config(api_client, skip_if_no_server):
     assert response.status_code == 200
     data = response.json()
     assert "config_version" in data
+
+
 @pytest.mark.asyncio
 async def test_unauthorized_access(skip_if_no_server):
     """Test that requests without proper Bearer token are rejected."""
@@ -71,10 +75,12 @@ async def test_unauthorized_access(skip_if_no_server):
     assert response.status_code == 403
     data = response.json()
     assert "error" in data
-    
+
     # Test with invalid token - should return 401
     headers = {"Authorization": "Bearer invalid-token"}
-    response = requests.get(f"{skip_if_no_server}/workflows/frameworks", headers=headers)
+    response = requests.get(
+        f"{skip_if_no_server}/workflows/frameworks", headers=headers
+    )
     assert response.status_code == 401
     data = response.json()
     assert "error" in data

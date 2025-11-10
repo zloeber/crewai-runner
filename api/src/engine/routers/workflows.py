@@ -49,7 +49,7 @@ async def start_workflow(
             "workflow": request.workflow,
             "providerConfig": request.providerConfig,
             "framework": framework,
-            "status": "started",
+            "status": "running",  # Changed from "started" to "running" to match model validation
             "agents": (
                 [
                     AgentStatus(name=agent.name, status="idle")

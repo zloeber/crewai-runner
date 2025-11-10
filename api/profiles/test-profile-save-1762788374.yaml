@@ -1,0 +1,13 @@
+apiVersion: crewai/v1
+kind: Profile
+metadata:
+  name: test-profile-save-1762788374
+  description: Test profile description
+  version: 1.0.0
+  created: '2024-01-01T00:00:00Z'
+  tags: []
+mcpServers: []
+providers: []
+modelOverrides: []
+defaultToolSets: {}
+environment: {}
