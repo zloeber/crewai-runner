@@ -1,6 +1,6 @@
 name: Test API
 run-name: Test - ${{ github.ref_name }}
-on: [push, pull_request]
+on: [push]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
