@@ -5,7 +5,6 @@ import json
 import time
 import uuid
 from typing import Dict, List, Optional, Any
-from pathlib import Path
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -16,7 +15,6 @@ from models import (
     MCPTransport,
     MCPConnectionStatus,
     MCPTool,
-    MCPToolSchema,
     MCPToolTestResponse,
 )
 
@@ -41,7 +39,7 @@ class MCPServerManager:
                 id=server_id,
                 name=config.name,
                 description=config.description,
-                transport=config.transport,
+                transport=config.transport.model_dump(),
                 env=config.env or {},
                 tools=config.tools,
                 enabled=config.enabled,
@@ -69,7 +67,7 @@ class MCPServerManager:
             server = self._servers[server_id]
             server.name = config.name
             server.description = config.description
-            server.transport = config.transport
+            server.transport = MCPTransport(**config.transport.model_dump())
             server.env = config.env or {}
             server.tools = config.tools
             server.enabled = config.enabled
@@ -354,7 +352,7 @@ class MCPServerManager:
             # Create stdio client
             stdio = await stdio_client(server_params)
             read, write = stdio
-            
+
             # Initialize session
             session = ClientSession(read, write)
             await session.initialize()
@@ -378,7 +376,7 @@ class MCPServerManager:
             try:
                 # Close the session
                 await session.__aexit__(None, None, None)
-            except:
+            except Exception as _:
                 pass
             del self._sessions[server_id]
 

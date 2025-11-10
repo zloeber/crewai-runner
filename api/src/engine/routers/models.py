@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
 import uuid
 
-from models import (
+from engine.models import (
     ModelsResponse,
     AddModelRequest,
     AddModelResponse,
     Model,
 )
-from auth import verify_api_key
+from engine.auth import verify_api_key
 
 router = APIRouter(prefix="/models", tags=["models"])
 

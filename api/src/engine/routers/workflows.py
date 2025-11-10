@@ -2,9 +2,8 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
-import uuid
 
-from models import (
+from engine.models import (
     StartWorkflowRequest,
     StartWorkflowResponse,
     StopWorkflowRequest,
@@ -12,8 +11,8 @@ from models import (
     WorkflowStatusResponse,
     AgentStatus,
 )
-from auth import verify_api_key
-from services.orchestrator_factory import OrchestratorFactory
+from engine.auth import verify_api_key
+from engine.services.orchestrator_factory import OrchestratorFactory
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
@@ -28,36 +27,42 @@ async def start_workflow(
     """Start a new workflow."""
     # Determine framework to use
     framework = request.framework or request.workflow.framework or "crewai"
-    
+
     try:
         # Get orchestrator for the specified framework
         orchestrator = OrchestratorFactory.get_orchestrator(framework)
-        
+
         # Prepare config for orchestrator
         config = {
             "workflow": request.workflow.model_dump(),
-            "providerConfig": request.providerConfig.model_dump() if request.providerConfig else None,
+            "providerConfig": (
+                request.providerConfig.model_dump() if request.providerConfig else None
+            ),
         }
-        
+
         # Execute workflow
         result = await orchestrator.execute(config)
         workflow_id = result.get("workflow_id")
-        
+
         # Store workflow information
         workflows_db[workflow_id] = {
             "workflow": request.workflow,
             "providerConfig": request.providerConfig,
             "framework": framework,
-            "status": "started",
-            "agents": [
-                AgentStatus(name=agent.name, status="idle")
-                for agent in request.workflow.agents
-            ] if request.workflow.agents else [],
+            "status": "running",  # Changed from "started" to "running" to match model validation
+            "agents": (
+                [
+                    AgentStatus(name=agent.name, status="idle")
+                    for agent in request.workflow.agents
+                ]
+                if request.workflow.agents
+                else []
+            ),
             "currentTask": None,
             "progress": 0,
             "orchestrator": orchestrator,
         }
-        
+
         return StartWorkflowResponse(
             workflowId=workflow_id,
             status="started",
@@ -66,7 +71,9 @@ async def start_workflow(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start workflow: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to start workflow: {str(e)}"
+        )
 
 
 @router.post("/stop", response_model=StopWorkflowResponse)
@@ -81,13 +88,15 @@ async def stop_workflow(
 
     workflow_data = workflows_db[workflow_id]
     orchestrator = workflow_data.get("orchestrator")
-    
+
     if orchestrator:
         try:
             await orchestrator.stop(workflow_id)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to stop workflow: {str(e)}")
-    
+            raise HTTPException(
+                status_code=500, detail=f"Failed to stop workflow: {str(e)}"
+            )
+
     # Update workflow status
     workflows_db[workflow_id]["status"] = "stopped"
 

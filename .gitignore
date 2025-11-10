@@ -46,3 +46,6 @@ wheels/
 .installed.cfg
 *.egg
 .DS_Store
+data/
+.tmp
+.pytest_cache

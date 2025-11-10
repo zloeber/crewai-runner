@@ -278,6 +278,7 @@ class ImportProfileResponse(BaseModel):
 # MCP Server Management Models
 class MCPServer(BaseModel):
     """MCP Server with runtime state."""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -329,6 +330,7 @@ class TestMCPConnectionResponse(BaseModel):
 
 class MCPToolSchema(BaseModel):
     """Schema definition for an MCP tool."""
+
     name: str
     description: Optional[str] = None
     input_schema: Dict[str, Any]
@@ -337,6 +339,7 @@ class MCPToolSchema(BaseModel):
 
 class MCPTool(BaseModel):
     """MCP Tool with metadata."""
+
     id: str
     server_id: str
     server_name: str
@@ -368,6 +371,7 @@ class MCPToolTestResponse(BaseModel):
 
 class ImportMCPConfigRequest(BaseModel):
     """Import MCP servers from Claude Desktop or other config formats."""
+
     config_content: str  # JSON content
     config_format: Literal["claude_desktop", "cline", "custom"] = "claude_desktop"
 
@@ -391,3 +395,70 @@ class ExportToolResponse(BaseModel):
     tool_definition: str
     framework: str
     instructions: Optional[str] = None
+
+
+# Configuration Management Models
+class AgentConfig(BaseModel):
+    """Configuration for a single agent."""
+
+    name: str
+    role: str
+    goal: str
+    backstory: str
+    tools: List[str] = Field(default_factory=list)
+    llm_config: Optional[Dict[str, Any]] = None
+    max_iter: int = 5
+    verbose: bool = True
+    allow_delegation: bool = False
+
+
+class CrewConfig(BaseModel):
+    """Configuration for a crew of agents."""
+
+    name: str
+    description: str
+    agents: List[AgentConfig]
+    tasks: List[Dict[str, Any]] = Field(default_factory=list)
+    process: str = "sequential"  # or "hierarchical"
+    verbose: bool = True
+
+
+class APIConfig(BaseModel):
+    """Main API configuration."""
+
+    host: str = "localhost"
+    port: int = 8000
+    debug: bool = False
+    cors_origins: List[str] = Field(default_factory=lambda: ["*"])
+
+
+class RunnerConfig(BaseModel):
+    """Complete runner configuration."""
+
+    api: APIConfig = Field(default_factory=APIConfig)
+    crews: Dict[str, CrewConfig] = Field(default_factory=dict)
+    default_crew: Optional[str] = None
+    config_version: str = "1.0"
+
+
+# Configuration API Models
+class CreateCrewRequest(BaseModel):
+    crew: CrewConfig
+
+
+class CreateCrewResponse(BaseModel):
+    message: str
+    crew_name: str
+
+
+class ListCrewsResponse(BaseModel):
+    crews: List[str]
+
+
+class GetCrewResponse(BaseModel):
+    crew: CrewConfig
+
+
+class DeleteCrewResponse(BaseModel):
+    message: str
+    crew_name: str

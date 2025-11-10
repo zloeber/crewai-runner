@@ -1,0 +1,44 @@
+name: "research_team"
+description: "A team for conducting research and creating content"
+process: "sequential"
+verbose: true
+
+agents:
+  - name: "researcher"
+    role: "Senior Research Analyst"
+    goal: "Conduct thorough research on given topics"
+    backstory: "You are an experienced researcher with expertise in data analysis and information gathering. You excel at finding reliable sources, analyzing data, and presenting findings in a clear and comprehensive manner."
+    tools: ["search", "web_scraper"]
+    llm_config: null
+    max_iter: 5
+    verbose: true
+    allow_delegation: false
+  
+  - name: "writer"
+    role: "Content Writer"
+    goal: "Create engaging content based on research"
+    backstory: "You are a skilled writer who can transform research into compelling, well-structured content. You have a talent for making complex information accessible and engaging for various audiences."
+    tools: ["text_editor"]
+    llm_config: null
+    max_iter: 3
+    verbose: true
+    allow_delegation: false
+
+tasks:
+  - name: "research_task"
+    description: "Research the given topic thoroughly using available sources"
+    agent: "researcher"
+    expected_output: "Comprehensive research report with key findings, statistics, and reliable sources"
+    tools: ["search", "web_scraper"]
+    async_execution: false
+    context: []
+    output_json: false
+  
+  - name: "writing_task"
+    description: "Write an engaging article based on the research findings"
+    agent: "writer"
+    expected_output: "Well-written article of 800-1200 words with proper structure, engaging content, and citations"
+    tools: ["text_editor"]
+    async_execution: false
+    context: ["research_task"]
+    output_json: false

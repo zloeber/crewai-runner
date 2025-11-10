@@ -1,0 +1,12 @@
+api:
+  host: "localhost"
+  port: 8000
+  debug: true
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+    - "http://localhost:8080"
+
+crews: {}
+default_crew: "research_team"
+config_version: "1.0"

@@ -148,7 +148,10 @@ tasks:
     cmds:
       - |
         uv pip install -e ".[test]"
-        uv run pytest --maxfail=1 --disable-warnings -v tests
+        ENGINE_API_KEY=test-api-key python run_server.py &
+        sleep 5
+        uv run pytest --maxfail=1 --disable-warnings -v ./src/tests
+
 
   typecheck:
     desc: Run the type checker
@@ -250,3 +253,10 @@ tasks:
           --analyzers yara \
           -o security_scan_results.md
 
+  run:api:
+    desc: Run the API server
+    dir: ./api
+    cmds:
+      - |
+        uv pip install -e ".[dev]"
+        uv run uvicorn src.engine.main:app --host 0.0.0.0 --port 8000 --reload

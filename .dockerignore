@@ -66,3 +66,5 @@ output/
 .env
 site/
 config.client.yaml
+data
+.tmp

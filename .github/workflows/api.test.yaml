@@ -1,13 +1,13 @@
 name: Test API
 run-name: Test - ${{ github.ref_name }}
-on: [push, pull_request]
+on: [push]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  PROJECT_PATH: api/src/engine
+  PROJECT_PATH: api
 
 permissions:
   contents: read
@@ -28,28 +28,32 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: setup.py
+          cache-dependency-path: pyproject.toml
 
       - name: Set up environment
         run: |
-          cd api
+          cd ${{ env.PROJECT_PATH }}
           pip install uv
           uv venv
           uv pip install -e ".[test]"
 
       - name: Unit Tests
         run: |
-          cd api
-          uv run pytest --maxfail=1 --disable-warnings -v tests
+          cd ${{ env.PROJECT_PATH }}
+          ENGINE_API_KEY=test-api-key python run_server.py &
+          sleep 5
+          uv run pytest --maxfail=1 --disable-warnings -v ./src/tests
 
       - name: Linting
         if: matrix.os != 'windows-latest'
         run: |
-          cd api
-          uv run black --check ${{ env.PROJECT_PATH }}
-          uv run ruff format --check ${{ env.PROJECT_PATH }}
+          cd ${{ env.PROJECT_PATH }}
+          uv pip install -e ".[dev]"
+          uv run ruff check .
+          uv run black --check .
+
       - name: Build Check
         run: |
-          cd api
+          cd ${{ env.PROJECT_PATH }}
           uv sync
           uv build

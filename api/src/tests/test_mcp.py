@@ -1,12 +1,11 @@
 """Tests for MCP server management functionality."""
 
 import pytest
-from src.engine.models import (
+from engine.models import (
     MCPServerConfig,
     MCPTransport,
-    MCPServer,
 )
-from src.engine.services.mcp_manager import MCPServerManager
+from engine.services.mcp_manager import MCPServerManager
 
 
 @pytest.fixture
@@ -146,8 +145,8 @@ async def test_multiple_servers(mcp_manager):
         enabled=True,
     )
 
-    server1 = await mcp_manager.add_server(config1)
-    server2 = await mcp_manager.add_server(config2)
+    _ = await mcp_manager.add_server(config1)
+    _ = await mcp_manager.add_server(config2)
 
     # List servers
     servers = await mcp_manager.list_servers()
