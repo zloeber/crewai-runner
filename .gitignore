@@ -47,3 +47,4 @@ wheels/
 *.egg
 .DS_Store
 data/
+.tmp

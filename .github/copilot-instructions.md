@@ -4,7 +4,7 @@
 
 `./frontend` - A NodeJS/React/Vite frontend. Read `./frontend/AGENTS.md` for frontend development guidelines.
 `./api` - FastMCP/FastAPI/Click-based Python wrapper to CrewAI. Read `./api/AGENTS.md` for backend development guidelines.
-`./API_SCHEMA.md` - API endpoints and configuration requirements for both frontend and backend.
+`./docs/API_SCHEMA.md` - API endpoints and configuration requirements for both frontend and backend.
 
 ## Rules
 - Before running any command, check the current terminal context and use that same terminal ID for all subsequent commands.
@@ -33,7 +33,7 @@
 ```bash
 uv sync                    # Install dependencies (uses uv, not pip)
 python -m pytest          # Run tests
-python -m terraform_ingest.cli --help  # CLI access
+uv run ./api/src/engine/main.py
 ```
 ## Testing Patterns
 - Pydantic model validation in `test_models.py`  

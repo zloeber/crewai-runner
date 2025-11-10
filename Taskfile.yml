@@ -151,7 +151,7 @@ tasks:
         ENGINE_API_KEY=test-api-key python run_server.py &
         sleep 5
         uv run pytest --maxfail=1 --disable-warnings -v ./src/tests
-        fg
+
 
   typecheck:
     desc: Run the type checker
