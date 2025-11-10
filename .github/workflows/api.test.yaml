@@ -32,24 +32,24 @@ jobs:
 
       - name: Set up environment
         run: |
-          cd ${PROJECT_PATH}
+          cd ${{ env.PROJECT_PATH }}
           pip install uv
           uv venv
           uv pip install -e ".[test]"
 
       - name: Unit Tests
         run: |
-          cd ${PROJECT_PATH}
+          cd ${{ env.PROJECT_PATH }}
           uv run pytest --maxfail=1 --disable-warnings -v tests
 
       - name: Linting
         if: matrix.os != 'windows-latest'
         run: |
-          cd ${PROJECT_PATH}
+          cd ${{ env.PROJECT_PATH }}
           uv run black --check ${{ env.PROJECT_PATH }}
           uv run ruff format --check ${{ env.PROJECT_PATH }}
       - name: Build Check
         run: |
-          cd ${PROJECT_PATH}
+          cd ${{ env.PROJECT_PATH }}
           uv sync
           uv build
