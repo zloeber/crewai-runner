@@ -48,3 +48,4 @@ wheels/
 .DS_Store
 data/
 .tmp
+.pytest_cache
